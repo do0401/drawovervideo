@@ -7,8 +7,10 @@
       <v-flex xs12>
         <video id="video" src="../assets/videos/example.mp4" width="500" @resize="resizeCanvas"></video>
         <canvas id="canvas"></canvas>
-        <v-icon class="play" color="#37474F" @click="play">mdi-play-circle</v-icon>
-        <v-icon class="stop" color="#37474F" @click="pause">mdi-stop-circle</v-icon>
+        <v-btn class="play" color="#37474F" @click="play" dark outlined small>Play</v-btn>
+        <v-btn class="pause" color="#37474F" @click="pause" dark outlined small>Stop</v-btn>
+        <!-- <v-icon class="play" color="#37474F" @click="play">mdi-play-circle</v-icon>
+        <v-icon class="stop" color="#37474F" @click="pause">mdi-stop-circle</v-icon> -->
         <div id="output"></div>
         <v-radio-group class="radioGroup" v-model="drawType" row @change="drawInit">
           <v-radio label="Line" color="red" value="line"></v-radio>
@@ -63,7 +65,7 @@ export default {
         let mousex = parseInt(e.clientX - canvasx)
         let mousey = parseInt(e.clientY - canvasy)
 
-        output.innerHTML = "current: "+mousex+", "+mousey
+        output.innerHTML = "location: "+mousex+", "+mousey
       })
     },
 
@@ -195,30 +197,32 @@ export default {
     top: 0;
     left: 0;
     z-index: 10;
-    background-color: rgba(255, 0, 0, 0.5);
+    background-color: rgba(255, 0, 0, 0);
   }
 
   .play {
     position: absolute;
-    top: 280px;
-    left: 20px;
+    top: 265px;
+    left: -450px;
   }
 
-  .stop {
+  .pause {
     position: absolute;
-    top: 280px;
-    left: 50px;
+    top: 265px;
+    left: -445px;
   }
 
   #output {
     position: absolute;
-    top: 280px;
-    left: 400px;
+    top: 255px;
+    left: 430px;
+    font-size: 0.7rem;
+    color: white;
   }
 
   .radioGroup {
     position: absolute;
-    top: 260px;
-    left: 100px;
+    top: 259px;
+    left: 230px;
   }
 </style>
