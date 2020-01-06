@@ -5,7 +5,7 @@
       wrap
     >
       <v-flex xs12>
-        <video id="video" src="../assets/videos/example.mp4" width="500" @play="this.resizeCanvas"></video>
+        <video id="video" src="../assets/videos/example.mp4" width="500" @resize="resizeCanvas"></video>
         <canvas id="canvas"></canvas>
         <v-icon class="play" color="#37474F" @click="play">mdi-play-circle</v-icon>
         <v-icon class="stop" color="#37474F" @click="pause">mdi-stop-circle</v-icon>
@@ -30,14 +30,15 @@ export default {
   },
 
   methods: {
-    resizeCanvas (video) {
-      const w = video.target.offsetWidth
-      const h = video.target.offsetHeight
-      
-      const canvas = document.getElementById("canvas")
-      // const ctx = canvas.getContext('2d')
-      canvas.width = w
-      canvas.height = h
+    resizeCanvas () {
+        const video = document.getElementById("video")
+        const canvas = document.getElementById("canvas")
+  
+        const w = video.offsetWidth
+        const h = video.offsetHeight
+        
+        canvas.width = w
+        canvas.height = h
     },
 
     play () {
@@ -104,8 +105,6 @@ export default {
 
         // 라인 그리기
         if (this.drawType === "line") {
-          // eslint-disable-next-line no-console
-          console.log("line click")
 
           if (this.lineFrom === null) {
             this.lineFrom = [mousex, mousey]
@@ -125,10 +124,6 @@ export default {
             ctx.lineJoin = ctx.lineCap = "round"
             ctx.stroke()
           }
-        // eslint-disable-next-line no-console
-        console.log(this.lineFrom)
-        // eslint-disable-next-line no-console
-        console.log(this.lineTo)
         }
       })
 
@@ -200,7 +195,7 @@ export default {
     top: 0;
     left: 0;
     z-index: 10;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: rgba(255, 0, 0, 0.5);
   }
 
   .play {
