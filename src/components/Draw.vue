@@ -8,6 +8,7 @@
       <v-btn class="play btn" color="#37474F" @click="play" dark small>Play</v-btn>
       <v-btn class="pause btn" color="#37474F" @click="pause" dark small>Stop</v-btn>
       <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
+      <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon>
       <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
       <!-- <v-icon class="play" color="#37474F" @click="play">mdi-play-circle</v-icon>
       <v-icon class="stop" color="#37474F" @click="pause">mdi-stop-circle</v-icon> -->
@@ -213,6 +214,17 @@ export default {
       const ctx = canvas.getContext("2d")
 
       this.$store.commit("undoHistory")
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      this.redraw()
+    },
+
+    redoHistory () {
+      // Canvas
+      const canvas = document.getElementById("canvas")
+      const ctx = canvas.getContext("2d")
+
+      this.$store.commit("redoHistory")
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       this.redraw()
@@ -442,8 +454,12 @@ export default {
     left: 25px;
   }
 
+  .redo {
+    left: 45px;
+  }
+
   .clear {
-    left: 80px;
+    left: 65px;
   }
 
   #output {
@@ -465,6 +481,6 @@ export default {
   .radioGroup {
     position: relative;
     top: 290px;
-    left: 300px;
+    left: 320px;
   }
 </style>
