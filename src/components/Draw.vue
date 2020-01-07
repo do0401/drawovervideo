@@ -5,9 +5,10 @@
       <canvas id="canvas"></canvas>
     </v-container>
     <v-container>
-      <v-btn class="play" color="#37474F" @click="play" dark small>Play</v-btn>
-      <v-btn class="pause" color="#37474F" @click="pause" dark small>Stop</v-btn>
-      <v-btn class="clear" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
+      <v-btn class="play btn" color="#37474F" @click="play" dark small>Play</v-btn>
+      <v-btn class="pause btn" color="#37474F" @click="pause" dark small>Stop</v-btn>
+      <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
+      <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
       <!-- <v-icon class="play" color="#37474F" @click="play">mdi-play-circle</v-icon>
       <v-icon class="stop" color="#37474F" @click="pause">mdi-stop-circle</v-icon> -->
       <div id="output"></div>
@@ -81,7 +82,7 @@ export default {
       this.angle.p3 = null
 
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      this.redraw(ctx)
+      this.redraw()
     },
 
     drawLine (ctx, mousex, mousey) {
@@ -152,6 +153,7 @@ export default {
         // state 에 그려지는 각도 정보를 지속적으로 업데이트
         // this.$store.getters.angleStorage.push({location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
         this.$store.commit("pushAngle", {location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
+        this.addHistory()
         
         const output = document.getElementById("outputAngle")
         output.innerHTML = "angle: "+angle
@@ -172,7 +174,7 @@ export default {
       this.temp.rect = [lastMousex, lastMousey, width, height]
 
       // 저장된 rectangle 이 있으면 다시 그려주는 코드
-      this.redraw(ctx)
+      this.redraw()
     },
 
     drawCircle (canvas, ctx, mousex, mousey, lastMousex, lastMousey) {
@@ -197,27 +199,37 @@ export default {
       this.temp.circle = [scalex, scaley, centerx, centery]
 
       // 저장된 circle 이 있으면 다시 그려주는 코드
-      this.redraw(ctx)
+      this.redraw()
     },
 
     addHistory () {
-      this.$store.state.history.push({drawType: this.drawType, hidden: "F"})
+      // this.$store.state.history.push({drawType: this.drawType, hidden: "F"})
+      this.$store.commit("addHistory", {drawType: this.drawType, hidden: "F"})
     },
 
+    undoHistory () {
+      // Canvas
+      const canvas = document.getElementById("canvas")
+      const ctx = canvas.getContext("2d")
 
+      this.$store.commit("undoHistory")
 
-    redraw (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      this.redraw()
+    },
+
+    redraw () {
+      // Canvas
+      const canvas = document.getElementById("canvas")
+      const ctx = canvas.getContext("2d")
+
       // 저장된 line 이 있으면 다시 그려주는 코드
       if (this.$store.getters.lineStorage !== null) {
         this.$store.getters.lineStorage.forEach(entry => {
-          // eslint-disable-next-line no-console
-          console.log("entry", entry)
           if (entry.hidden === "F") {
             let p1 = null
             let p2 = null
             entry.location.forEach(locEntry => {
-              // eslint-disable-next-line no-console
-              console.log(locEntry)
               if (p1 === null) {
                 p1 = locEntry
               } else if (p1 !== null && p2 === null) {
@@ -227,8 +239,6 @@ export default {
                 p2 = locEntry
               }
 
-              // eslint-disable-next-line no-console
-              console.log(p1, p2)
               if (p1 !== null && p2 !== null) {
                 ctx.beginPath()
                 ctx.moveTo(p1[0], p1[1])
@@ -326,10 +336,12 @@ export default {
         if (this.temp.rect !== null) {
           // this.$store.getters.rectStorage.push({location: this.temp.rect, hidden: "F"})
           this.$store.commit("pushRect", {location: this.temp.rect, hidden: "F"})
+          this.addHistory()
           this.temp.rect = null
         } else if (this.temp.circle !== null) {
           // this.$store.getters.cirStorage.push({location: this.temp.circle, hidden: "F"})
           this.$store.commit("pushCircle", {location: this.temp.circle, hidden: "F"})
+          this.addHistory()
           this.temp.circle = null
         }
       })
@@ -339,6 +351,7 @@ export default {
         if (this.drawType === "line" && this.temp.line !== null) {
           // this.$store.getters.lineStorage.push({location: this.temp.line, hidden: "F"})
           this.$store.commit("pushLine", {location: this.temp.line, hidden: "F"})
+          this.addHistory()
           this.temp.line = null
           this.lineFrom = null
           this.lineTo = null
@@ -416,22 +429,21 @@ export default {
     background-color: rgba(255, 0, 0, 0);
   }
 
-  .play {
+  .btn {
     position: relative;
     top: 335px;
-    /* left: -450px; */
   }
 
   .pause {
-    position: relative;
-    top: 335px;
     left: 5px;
   }
 
+  .undo {
+    left: 25px;
+  }
+
   .clear {
-    position: relative;
-    top: 335px;
-    left: 100px;
+    left: 80px;
   }
 
   #output {
