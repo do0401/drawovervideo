@@ -79,12 +79,13 @@ export default {
       this.angle.p2 = null
       this.angle.p3 = null
 
-      this.$store.state.storage.line = []
-      this.$store.state.storage.rect = []
-      this.$store.state.storage.circle = []
-      this.$store.state.storage.angle = []
+      // this.$store.state.storage.line = []
+      // this.$store.state.storage.rect = []
+      // this.$store.state.storage.circle = []
+      // this.$store.state.storage.angle = []
 
       ctx.clearRect(0, 0, canvas.width, canvas.height)
+      this.redraw(ctx)
     },
 
     drawLine (ctx, mousex, mousey) {
@@ -117,47 +118,47 @@ export default {
 
     drawAngle (ctx, mousex, mousey) {
       if (this.angle.p1 === null) {
-            this.angle.p1 = [mousex, mousey]
-          } else if (this.angle.p2 === null) {
-            this.angle.p2 = [mousex, mousey]
-          } else if (this.angle.p3 === null) {
-            this.angle.p3 = [mousex, mousey]
-          } else {
-            this.angle.p1 = [mousex, mousey]
-            this.angle.p2 = null
-            this.angle.p3 = null
-          }
+        this.angle.p1 = [mousex, mousey]
+      } else if (this.angle.p2 === null) {
+        this.angle.p2 = [mousex, mousey]
+      } else if (this.angle.p3 === null) {
+        this.angle.p3 = [mousex, mousey]
+      } else {
+        this.angle.p1 = [mousex, mousey]
+        this.angle.p2 = null
+        this.angle.p3 = null
+      }
 
-          if (this.angle.p1 !== null && this.angle.p2 !== null && this.angle.p3 === null) {
-            ctx.beginPath()
-            ctx.moveTo(this.angle.p1[0], this.angle.p1[1])
-            ctx.lineTo(this.angle.p2[0], this.angle.p2[1])
-            ctx.strokeStyle = "red"
-            ctx.lineWidth = 3
-            ctx.lineJoin = ctx.lineCap = "round"
-            ctx.stroke()
-          } else if (this.angle.p1 !== null && this.angle.p2 !== null && this.angle.p3 !== null) {
-            ctx.beginPath()
-            ctx.moveTo(this.angle.p2[0], this.angle.p2[1])
-            ctx.lineTo(this.angle.p3[0], this.angle.p3[1])
-            ctx.strokeStyle = "red"
-            ctx.lineWidth = 3
-            ctx.lineJoin = ctx.lineCap = "round"
-            ctx.stroke()
+      if (this.angle.p1 !== null && this.angle.p2 !== null && this.angle.p3 === null) {
+        ctx.beginPath()
+        ctx.moveTo(this.angle.p1[0], this.angle.p1[1])
+        ctx.lineTo(this.angle.p2[0], this.angle.p2[1])
+        ctx.strokeStyle = "red"
+        ctx.lineWidth = 3
+        ctx.lineJoin = ctx.lineCap = "round"
+        ctx.stroke()
+      } else if (this.angle.p1 !== null && this.angle.p2 !== null && this.angle.p3 !== null) {
+        ctx.beginPath()
+        ctx.moveTo(this.angle.p2[0], this.angle.p2[1])
+        ctx.lineTo(this.angle.p3[0], this.angle.p3[1])
+        ctx.strokeStyle = "red"
+        ctx.lineWidth = 3
+        ctx.lineJoin = ctx.lineCap = "round"
+        ctx.stroke()
 
-            // 각도 계산 함수
-            const ab = Math.sqrt(Math.pow(this.angle.p2[0] - this.angle.p1[0], 2) + Math.pow(this.angle.p2[1] - this.angle.p1[1], 2))
-            const bc = Math.sqrt(Math.pow(this.angle.p2[0] - this.angle.p3[0], 2) + Math.pow(this.angle.p2[1] - this.angle.p3[1], 2))
-            const ac = Math.sqrt(Math.pow(this.angle.p3[0] - this.angle.p1[0], 2) + Math.pow(this.angle.p3[1] - this.angle.p1[1], 2))
+        // 각도 계산 함수
+        const ab = Math.sqrt(Math.pow(this.angle.p2[0] - this.angle.p1[0], 2) + Math.pow(this.angle.p2[1] - this.angle.p1[1], 2))
+        const bc = Math.sqrt(Math.pow(this.angle.p2[0] - this.angle.p3[0], 2) + Math.pow(this.angle.p2[1] - this.angle.p3[1], 2))
+        const ac = Math.sqrt(Math.pow(this.angle.p3[0] - this.angle.p1[0], 2) + Math.pow(this.angle.p3[1] - this.angle.p1[1], 2))
 
-            const angle = (Math.acos((bc * bc + ab * ab - ac * ac) / (2 * bc * ab)) * 180) / Math.PI
+        const angle = (Math.acos((bc * bc + ab * ab - ac * ac) / (2 * bc * ab)) * 180) / Math.PI
 
-            // state 에 그려지는 각도 정보를 지속적으로 업데이트
-            this.$store.state.storage.angle.push([this.angle.p1, this.angle.p2, this.angle.p3, angle])
-            
-            const output = document.getElementById("outputAngle")
-            output.innerHTML = "angle: "+angle
-          }
+        // state 에 그려지는 각도 정보를 지속적으로 업데이트
+        this.$store.state.storage.angle.push({location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
+        
+        const output = document.getElementById("outputAngle")
+        output.innerHTML = "angle: "+angle
+      }
     },
 
     drawRect (canvas, ctx, mousex, mousey, lastMousex, lastMousey) {
@@ -174,13 +175,16 @@ export default {
       this.$store.state.rect = [lastMousex, lastMousey, width, height]
 
       // 저장된 rectangle 이 있으면 다시 그려주는 코드
-      if (this.$store.state.storage.rect !== null) {
-        this.$store.state.storage.rect.forEach(entry => {
-          ctx.beginPath()
-          ctx.rect(entry[0], entry[1], entry[2], entry[3])
-          ctx.stroke()
-        });
-      }
+      this.redraw(ctx)
+      // if (this.$store.state.storage.rect !== null) {
+      //   this.$store.state.storage.rect.forEach(entry => {
+      //     if (entry.hidden === "F") {
+      //       ctx.beginPath()
+      //       ctx.rect(entry.location[0], entry.location[1], entry.location[2], entry.location[3])
+      //       ctx.stroke()
+      //     }
+      //   });
+      // }
     },
 
     drawCircle (canvas, ctx, mousex, mousey, lastMousex, lastMousey) {
@@ -205,14 +209,91 @@ export default {
       this.$store.state.circle = [scalex, scaley, centerx, centery]
 
       // 저장된 circle 이 있으면 다시 그려주는 코드
+      this.redraw(ctx)
+      // if (this.$store.state.storage.circle !== null) {
+      //   this.$store.state.storage.circle.forEach(entry => {
+      //     if (entry.hidden === "F") {
+      //       ctx.save()
+      //       ctx.beginPath()
+      //       ctx.scale(entry.location[0], entry.location[1])
+      //       ctx.arc(entry.location[2], entry.location[3], 1, 0, 2*Math.PI)
+      //       ctx.restore()
+      //       ctx.stroke()
+      //     }
+      //   });
+      // }
+    },
+
+    redraw (ctx) {
+      // 저장된 line 이 있으면 다시 그려주는 코드
+      if (this.$store.state.storage.line !== null) {
+        this.$store.state.storage.line.forEach(entry => {
+          // eslint-disable-next-line no-console
+          console.log("entry", entry)
+          if (entry.hidden === "F") {
+            let p1 = null
+            let p2 = null
+            entry.location.forEach(locEntry => {
+              // eslint-disable-next-line no-console
+              console.log(locEntry)
+              if (p1 === null) {
+                p1 = locEntry
+              } else if (p1 !== null && p2 === null) {
+                p2 = locEntry
+              } else if (p1 !== null && p2 !== null) {
+                p1 = [...p2]
+                p2 = locEntry
+              }
+
+              // eslint-disable-next-line no-console
+              console.log(p1, p2)
+              if (p1 !== null && p2 !== null) {
+                ctx.beginPath()
+                ctx.moveTo(p1[0], p1[1])
+                ctx.lineTo(p2[0], p2[1])
+                ctx.stroke()
+              }
+            })
+          }
+        });
+      }
+
+      // 저장된 angle 이 있으면 다시 그려주는 코드
+      if (this.$store.state.storage.angle !== null) {
+        this.$store.state.storage.angle.forEach(entry => {
+          if (entry.hidden === "F") {
+            ctx.beginPath()
+            ctx.moveTo(entry.location[0][0], entry.location[0][1])
+            ctx.lineTo(entry.location[1][0], entry.location[1][1])
+            ctx.moveTo(entry.location[1][0], entry.location[1][1])
+            ctx.lineTo(entry.location[2][0], entry.location[2][1])
+            ctx.stroke()
+          }
+        });
+      }
+
+      // 저장된 rectangle 이 있으면 다시 그려주는 코드
+      if (this.$store.state.storage.rect !== null) {
+        this.$store.state.storage.rect.forEach(entry => {
+          if (entry.hidden === "F") {
+            ctx.beginPath()
+            ctx.rect(entry.location[0], entry.location[1], entry.location[2], entry.location[3])
+            ctx.stroke()
+          }
+        });
+      }
+
+      // 저장된 circle 이 있으면 다시 그려주는 코드
       if (this.$store.state.storage.circle !== null) {
         this.$store.state.storage.circle.forEach(entry => {
-          ctx.save()
-          ctx.beginPath()
-          ctx.scale(entry[0], entry[1])
-          ctx.arc(entry[2], entry[3], 1, 0, 2*Math.PI)
-          ctx.restore()
-          ctx.stroke()
+          if (entry.hidden === "F") {
+            ctx.save()
+            ctx.beginPath()
+            ctx.scale(entry.location[0], entry.location[1])
+            ctx.arc(entry.location[2], entry.location[3], 1, 0, 2*Math.PI)
+            ctx.restore()
+            ctx.stroke()
+          }
         });
       }
     },
@@ -241,19 +322,22 @@ export default {
       canvas.addEventListener("mouseup", () => {
         mousedown = false
         if (this.$store.state.rect !== null) {
-          this.$store.state.storage.rect.push(this.$store.state.rect)
+          this.$store.state.storage.rect.push({location: this.$store.state.rect, hidden: "F"})
           this.$store.state.rect = null
         } else if (this.$store.state.circle !== null) {
-          this.$store.state.storage.circle.push(this.$store.state.circle)
+          this.$store.state.storage.circle.push({location: this.$store.state.circle, hidden: "F"})
           this.$store.state.circle = null
         }
+
+        // eslint-disable-next-line no-console
+        console.log(this.$store.state.storage)
       })
 
       canvas.addEventListener("contextmenu", e => {
         e.preventDefault();
         if (this.drawType === "line" && this.$store.state.line !== null) {
-          this.$store.state.storage.rect.push(this.$store.state.rect)
-          this.$store.state.rect = null
+          this.$store.state.storage.line.push({location: this.$store.state.line, hidden: "F"})
+          this.$store.state.line = null
           this.lineFrom = null
           this.lineTo = null
         }
