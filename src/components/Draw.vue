@@ -4,23 +4,28 @@
       <video id="video" src="../assets/videos/example.mp4" width="500" @resize="resizeCanvas"></video>
       <canvas id="canvas"></canvas>
     </v-container>
-    <v-container>
-      <v-btn class="play btn" color="#37474F" @click="play" dark small>Play</v-btn>
-      <v-btn class="pause btn" color="#37474F" @click="pause" dark small>Stop</v-btn>
-      <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
-      <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon>
-      <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
-      <!-- <v-icon class="play" color="#37474F" @click="play">mdi-play-circle</v-icon>
-      <v-icon class="stop" color="#37474F" @click="pause">mdi-stop-circle</v-icon> -->
-      <div id="output"></div>
-      <div id="outputAngle"></div>
-      <v-radio-group class="radioGroup" v-model="drawType" row @change="drawInit">
-        <v-radio label="Line" color="red" value="line"></v-radio>
-        <v-radio label="Rectangle" color="red" value="rect"></v-radio>
-        <v-radio label="Circle" color="red" value="circle"></v-radio>
-        <v-radio label="Angle" color="red" value="angle"></v-radio>
-      </v-radio-group>
-    </v-container>
+    <v-card class="toolbar" max-width="700" height="50">
+      <v-container>
+      <v-flex xs12>
+        <v-btn class="play btn" color="#37474F" @click="play" dark small>Play</v-btn>
+        <v-btn class="pause btn" color="#37474F" @click="pause" dark small>Stop</v-btn>
+        <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
+        <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon>
+        <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
+        <!-- <v-icon class="play" color="#37474F" @click="play">mdi-play-circle</v-icon>
+        <v-icon class="stop" color="#37474F" @click="pause">mdi-stop-circle</v-icon> -->
+        <div id="output"></div>
+        <div id="outputAngle"></div>
+        <v-radio-group class="radioGroup" v-model="drawType" row @change="drawInit">
+          <v-radio label="Line" color="red" value="line"></v-radio>
+          <v-radio label="Rectangle" color="red" value="rect"></v-radio>
+          <v-radio label="Circle" color="red" value="circle"></v-radio>
+          <v-radio label="Angle" color="red" value="angle"></v-radio>
+        </v-radio-group>
+        
+      </v-flex>
+      </v-container>
+    </v-card>
   </v-app>
 </template>
 
@@ -37,10 +42,19 @@ export default {
     resizeCanvas () {
         const video = document.getElementById("video")
         const canvas = document.getElementById("canvas")
+
+        // eslint-disable-next-line no-console
+        console.log(video.offsetTop)
+        // eslint-disable-next-line no-console
+        console.log(video.offsetLeft)
   
+        const t = video.offsetTop+"px"
+        const l = video.offsetLeft+"px"
         const w = video.offsetWidth
         const h = video.offsetHeight
         
+        canvas.style.top = t
+        canvas.style.left = l
         canvas.width = w
         canvas.height = h
     },
@@ -429,21 +443,25 @@ export default {
     width: 700px;
     height: auto;
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0px;
+    left: 0px;
   }
 
   #canvas {
     position: absolute;
-    top: 0;
-    left: 0;
+    /* top: 0;
+    left: 0; */
     z-index: 10;
     background-color: rgba(255, 0, 0, 0);
   }
 
+  .toolbar {
+    top: 350px;
+  }
+
   .btn {
     position: relative;
-    top: 335px;
+    /* top: 335px; */
   }
 
   .pause {
@@ -480,7 +498,7 @@ export default {
 
   .radioGroup {
     position: relative;
-    top: 290px;
+    top: -46px;
     left: 320px;
   }
 </style>
