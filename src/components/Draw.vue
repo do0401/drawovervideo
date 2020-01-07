@@ -5,8 +5,9 @@
       <canvas id="canvas"></canvas>
     </v-container>
     <v-container>
-      <v-btn class="play" color="#37474F" @click="play" dark outlined small>Play</v-btn>
-      <v-btn class="pause" color="#37474F" @click="pause" dark outlined small>Stop</v-btn>
+      <v-btn class="play" color="#37474F" @click="play" dark small>Play</v-btn>
+      <v-btn class="pause" color="#37474F" @click="pause" dark small>Stop</v-btn>
+      <v-btn class="clear" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
       <!-- <v-icon class="play" color="#37474F" @click="play">mdi-play-circle</v-icon>
       <v-icon class="stop" color="#37474F" @click="pause">mdi-stop-circle</v-icon> -->
       <div id="output"></div>
@@ -79,11 +80,6 @@ export default {
       this.angle.p2 = null
       this.angle.p3 = null
 
-      // this.$store.state.storage.line = []
-      // this.$store.state.storage.rect = []
-      // this.$store.state.storage.circle = []
-      // this.$store.state.storage.angle = []
-
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       this.redraw(ctx)
     },
@@ -108,10 +104,10 @@ export default {
             ctx.stroke()
             // state 에 그려지는 line 정보를 지속적으로 업데이트
             // 마지막에 state 에 저장된 정보를 마우스 우클릭 이벤트에서 state.storage 에 저장함
-            if (this.$store.state.line === null) {
-              this.$store.state.line = [this.lineFrom, this.lineTo]
+            if (this.temp.line === null) {
+              this.temp.line = [this.lineFrom, this.lineTo]
             } else {
-              this.$store.state.line.push(this.lineTo)
+              this.temp.line.push(this.lineTo)
             }
           }
     },
@@ -154,7 +150,8 @@ export default {
         const angle = (Math.acos((bc * bc + ab * ab - ac * ac) / (2 * bc * ab)) * 180) / Math.PI
 
         // state 에 그려지는 각도 정보를 지속적으로 업데이트
-        this.$store.state.storage.angle.push({location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
+        // this.$store.getters.angleStorage.push({location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
+        this.$store.commit("pushAngle", {location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
         
         const output = document.getElementById("outputAngle")
         output.innerHTML = "angle: "+angle
@@ -172,19 +169,10 @@ export default {
       ctx.stroke()
       // state 에 그려지는 rect 정보를 지속적으로 업데이트
       // 마지막에 state 에 저장된 정보를 mouseup 이벤트에서 state.storage 에 저장함
-      this.$store.state.rect = [lastMousex, lastMousey, width, height]
+      this.temp.rect = [lastMousex, lastMousey, width, height]
 
       // 저장된 rectangle 이 있으면 다시 그려주는 코드
       this.redraw(ctx)
-      // if (this.$store.state.storage.rect !== null) {
-      //   this.$store.state.storage.rect.forEach(entry => {
-      //     if (entry.hidden === "F") {
-      //       ctx.beginPath()
-      //       ctx.rect(entry.location[0], entry.location[1], entry.location[2], entry.location[3])
-      //       ctx.stroke()
-      //     }
-      //   });
-      // }
     },
 
     drawCircle (canvas, ctx, mousex, mousey, lastMousex, lastMousey) {
@@ -206,28 +194,22 @@ export default {
       ctx.stroke()
       // state 에 그려지는 ciricle 정보를 지속적으로 업데이트
       // 마지막에 state 에 저장된 정보를 mouseup 이벤트에서 state.storage 에 저장함
-      this.$store.state.circle = [scalex, scaley, centerx, centery]
+      this.temp.circle = [scalex, scaley, centerx, centery]
 
       // 저장된 circle 이 있으면 다시 그려주는 코드
       this.redraw(ctx)
-      // if (this.$store.state.storage.circle !== null) {
-      //   this.$store.state.storage.circle.forEach(entry => {
-      //     if (entry.hidden === "F") {
-      //       ctx.save()
-      //       ctx.beginPath()
-      //       ctx.scale(entry.location[0], entry.location[1])
-      //       ctx.arc(entry.location[2], entry.location[3], 1, 0, 2*Math.PI)
-      //       ctx.restore()
-      //       ctx.stroke()
-      //     }
-      //   });
-      // }
     },
+
+    addHistory () {
+      this.$store.state.history.push({drawType: this.drawType, hidden: "F"})
+    },
+
+
 
     redraw (ctx) {
       // 저장된 line 이 있으면 다시 그려주는 코드
-      if (this.$store.state.storage.line !== null) {
-        this.$store.state.storage.line.forEach(entry => {
+      if (this.$store.getters.lineStorage !== null) {
+        this.$store.getters.lineStorage.forEach(entry => {
           // eslint-disable-next-line no-console
           console.log("entry", entry)
           if (entry.hidden === "F") {
@@ -259,8 +241,8 @@ export default {
       }
 
       // 저장된 angle 이 있으면 다시 그려주는 코드
-      if (this.$store.state.storage.angle !== null) {
-        this.$store.state.storage.angle.forEach(entry => {
+      if (this.$store.getters.angleStorage !== null) {
+        this.$store.getters.angleStorage.forEach(entry => {
           if (entry.hidden === "F") {
             ctx.beginPath()
             ctx.moveTo(entry.location[0][0], entry.location[0][1])
@@ -273,8 +255,8 @@ export default {
       }
 
       // 저장된 rectangle 이 있으면 다시 그려주는 코드
-      if (this.$store.state.storage.rect !== null) {
-        this.$store.state.storage.rect.forEach(entry => {
+      if (this.$store.getters.rectStorage !== null) {
+        this.$store.getters.rectStorage.forEach(entry => {
           if (entry.hidden === "F") {
             ctx.beginPath()
             ctx.rect(entry.location[0], entry.location[1], entry.location[2], entry.location[3])
@@ -284,8 +266,8 @@ export default {
       }
 
       // 저장된 circle 이 있으면 다시 그려주는 코드
-      if (this.$store.state.storage.circle !== null) {
-        this.$store.state.storage.circle.forEach(entry => {
+      if (this.$store.getters.cirStorage !== null) {
+        this.$store.getters.cirStorage.forEach(entry => {
           if (entry.hidden === "F") {
             ctx.save()
             ctx.beginPath()
@@ -296,6 +278,26 @@ export default {
           }
         });
       }
+    },
+
+    removeDrawing () {
+      // Canvas
+      const canvas = document.getElementById("canvas")
+      const ctx = canvas.getContext("2d")
+
+      this.lineFrom = null
+      this.lineTo = null
+      this.angle.p1 = null
+      this.angle.p2 = null
+      this.angle.p3 = null
+
+      // this.$store.getters.lineStorage = []
+      // this.$store.getters.rectStorage = []
+      // this.$store.getters.cirStorage = []
+      // this.$store.getters.angleStorage = []
+      this.$store.commit("initStorage")
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
     },
 
     draw () {
@@ -321,23 +323,23 @@ export default {
 
       canvas.addEventListener("mouseup", () => {
         mousedown = false
-        if (this.$store.state.rect !== null) {
-          this.$store.state.storage.rect.push({location: this.$store.state.rect, hidden: "F"})
-          this.$store.state.rect = null
-        } else if (this.$store.state.circle !== null) {
-          this.$store.state.storage.circle.push({location: this.$store.state.circle, hidden: "F"})
-          this.$store.state.circle = null
+        if (this.temp.rect !== null) {
+          // this.$store.getters.rectStorage.push({location: this.temp.rect, hidden: "F"})
+          this.$store.commit("pushRect", {location: this.temp.rect, hidden: "F"})
+          this.temp.rect = null
+        } else if (this.temp.circle !== null) {
+          // this.$store.getters.cirStorage.push({location: this.temp.circle, hidden: "F"})
+          this.$store.commit("pushCircle", {location: this.temp.circle, hidden: "F"})
+          this.temp.circle = null
         }
-
-        // eslint-disable-next-line no-console
-        console.log(this.$store.state.storage)
       })
 
       canvas.addEventListener("contextmenu", e => {
         e.preventDefault();
-        if (this.drawType === "line" && this.$store.state.line !== null) {
-          this.$store.state.storage.line.push({location: this.$store.state.line, hidden: "F"})
-          this.$store.state.line = null
+        if (this.drawType === "line" && this.temp.line !== null) {
+          // this.$store.getters.lineStorage.push({location: this.temp.line, hidden: "F"})
+          this.$store.commit("pushLine", {location: this.temp.line, hidden: "F"})
+          this.temp.line = null
           this.lineFrom = null
           this.lineTo = null
         }
@@ -387,6 +389,11 @@ export default {
       p1: null,
       p2: null,
       p3: null
+    },
+    temp: {
+      line: null,
+      rect: null,
+      circle: null
     }
   }),
 };
@@ -419,6 +426,12 @@ export default {
     position: relative;
     top: 335px;
     left: 5px;
+  }
+
+  .clear {
+    position: relative;
+    top: 335px;
+    left: 100px;
   }
 
   #output {
