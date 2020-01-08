@@ -357,10 +357,6 @@ export default {
       this.angle.p2 = null
       this.angle.p3 = null
 
-      // this.$store.getters.lineStorage = []
-      // this.$store.getters.rectStorage = []
-      // this.$store.getters.cirStorage = []
-      // this.$store.getters.angleStorage = []
       this.$store.commit("initStorage")
 
       ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -373,21 +369,23 @@ export default {
       const canvas = document.getElementById("canvas")
       const ctx = canvas.getContext("2d")
       // Variable
-      const canvasx = canvas.offsetLeft
-      const canvasy = canvas.offsetTop
-      let lastMousex = 0;
-      let lastMousey = 0;
+      let lastMousex = 0
+      let lastMousey = 0
       let mousex = 0
       let mousey = 0
       let mousedown = false
 
       canvas.addEventListener("mousedown", e => {
         mousedown = true
+        let canvasx = canvas.offsetLeft
+        let canvasy = canvas.offsetTop
         lastMousex = parseInt(e.clientX - canvasx)
         lastMousey = parseInt(e.clientY - canvasy)
 
         // drawType 이 자유 그리기인 경우, 마우스 다운 시 작은 사각 점이 찍힘
         if (this.drawType === "free") {
+          // eslint-disable-next-line no-console
+          console.log(lastMousex, lastMousey, mousex, mousey)
           ctx.beginPath()
           ctx.fillStyle = "red"
           ctx.fillRect(lastMousex, lastMousey, 2, 2)
@@ -429,6 +427,8 @@ export default {
       })
 
       canvas.addEventListener("click", e => {
+        let canvasx = canvas.offsetLeft
+        let canvasy = canvas.offsetTop
         mousex = parseInt(e.clientX - canvasx)
         mousey = parseInt(e.clientY - canvasy)
 
@@ -444,6 +444,8 @@ export default {
       })
 
       canvas.addEventListener("mousemove", e => {
+        let canvasx = canvas.offsetLeft
+        let canvasy = canvas.offsetTop
         if (this.drawType === "free") {
           lastMousex = mousex
           lastMousey = mousey
