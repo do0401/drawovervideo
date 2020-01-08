@@ -121,7 +121,7 @@ export default {
             ctx.moveTo(this.lineFrom[0], this.lineFrom[1])
             ctx.lineTo(this.lineTo[0], this.lineTo[1])
             ctx.strokeStyle = this.$store.state.strokeColor
-            ctx.lineWidth = 3
+            ctx.lineWidth = this.$store.state.strokeWidth
             ctx.lineJoin = ctx.lineCap = "round"
             ctx.stroke()
             // state 에 그려지는 line 정보를 지속적으로 업데이트
@@ -152,7 +152,7 @@ export default {
         ctx.moveTo(this.angle.p1[0], this.angle.p1[1])
         ctx.lineTo(this.angle.p2[0], this.angle.p2[1])
         ctx.strokeStyle = this.$store.state.strokeColor
-        ctx.lineWidth = 3
+        ctx.lineWidth = this.$store.state.strokeWidth
         ctx.lineJoin = ctx.lineCap = "round"
         ctx.stroke()
       } else if (this.angle.p1 !== null && this.angle.p2 !== null && this.angle.p3 !== null) {
@@ -160,7 +160,7 @@ export default {
         ctx.moveTo(this.angle.p2[0], this.angle.p2[1])
         ctx.lineTo(this.angle.p3[0], this.angle.p3[1])
         ctx.strokeStyle = this.$store.state.strokeColor
-        ctx.lineWidth = 3
+        ctx.lineWidth = this.$store.state.strokeWidth
         ctx.lineJoin = ctx.lineCap = "round"
         ctx.stroke()
 
@@ -188,7 +188,7 @@ export default {
       let height = mousey - lastMousey
       ctx.rect(lastMousex, lastMousey, width, height)
       ctx.strokeStyle = this.$store.state.strokeColor
-      ctx.lineWidth = 3
+      ctx.lineWidth = this.$store.state.strokeWidth
       ctx.stroke()
       // state 에 그려지는 rect 정보를 지속적으로 업데이트
       // 마지막에 state 에 저장된 정보를 mouseup 이벤트에서 state.storage 에 저장함
@@ -213,7 +213,7 @@ export default {
       // Restore and draw
       ctx.restore()
       ctx.strokeStyle = this.$store.state.strokeColor
-      ctx.lineWidth = 3
+      ctx.lineWidth = this.$store.state.strokeWidth
       ctx.stroke()
       // state 에 그려지는 ciricle 정보를 지속적으로 업데이트
       // 마지막에 state 에 저장된 정보를 mouseup 이벤트에서 state.storage 에 저장함
@@ -228,7 +228,7 @@ export default {
       ctx.moveTo(lastMousex, lastMousey)
       ctx.lineTo(mousex, mousey)
       ctx.strokeStyle = this.$store.state.strokeColor
-      ctx.lineWidth = 3
+      ctx.lineWidth = this.$store.state.strokeWidth
       ctx.stroke()
       ctx.closePath()
 
