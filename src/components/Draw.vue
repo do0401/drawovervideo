@@ -134,53 +134,6 @@ export default {
           }
     },
 
-    drawAngle (ctx, mousex, mousey) {
-      if (this.angle.p1 === null) {
-        this.angle.p1 = [mousex, mousey]
-      } else if (this.angle.p2 === null) {
-        this.angle.p2 = [mousex, mousey]
-      } else if (this.angle.p3 === null) {
-        this.angle.p3 = [mousex, mousey]
-      } else {
-        this.angle.p1 = [mousex, mousey]
-        this.angle.p2 = null
-        this.angle.p3 = null
-      }
-
-      if (this.angle.p1 !== null && this.angle.p2 !== null && this.angle.p3 === null) {
-        ctx.beginPath()
-        ctx.moveTo(this.angle.p1[0], this.angle.p1[1])
-        ctx.lineTo(this.angle.p2[0], this.angle.p2[1])
-        ctx.strokeStyle = this.$store.state.strokeColor
-        ctx.lineWidth = this.$store.state.strokeWidth
-        ctx.lineJoin = ctx.lineCap = "round"
-        ctx.stroke()
-      } else if (this.angle.p1 !== null && this.angle.p2 !== null && this.angle.p3 !== null) {
-        ctx.beginPath()
-        ctx.moveTo(this.angle.p2[0], this.angle.p2[1])
-        ctx.lineTo(this.angle.p3[0], this.angle.p3[1])
-        ctx.strokeStyle = this.$store.state.strokeColor
-        ctx.lineWidth = this.$store.state.strokeWidth
-        ctx.lineJoin = ctx.lineCap = "round"
-        ctx.stroke()
-
-        // 각도 계산 함수
-        const ab = Math.sqrt(Math.pow(this.angle.p2[0] - this.angle.p1[0], 2) + Math.pow(this.angle.p2[1] - this.angle.p1[1], 2))
-        const bc = Math.sqrt(Math.pow(this.angle.p2[0] - this.angle.p3[0], 2) + Math.pow(this.angle.p2[1] - this.angle.p3[1], 2))
-        const ac = Math.sqrt(Math.pow(this.angle.p3[0] - this.angle.p1[0], 2) + Math.pow(this.angle.p3[1] - this.angle.p1[1], 2))
-
-        const angle = (Math.acos((bc * bc + ab * ab - ac * ac) / (2 * bc * ab)) * 180) / Math.PI
-
-        // state 에 그려지는 각도 정보를 지속적으로 업데이트
-        // this.$store.getters.angleStorage.push({location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
-        this.$store.commit("pushAngle", {location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
-        this.addHistory()
-        
-        const output = document.getElementById("outputAngle")
-        output.innerHTML = "angle: "+angle
-      }
-    },
-
     drawRect (canvas, ctx, mousex, mousey, lastMousex, lastMousey) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.beginPath()
@@ -236,6 +189,94 @@ export default {
       // 마지막에 state 에 저장된 정보를 mouseup 이벤트에서 state.storage 에 저장함
       this.temp.free.push([lastMousex, lastMousey, mousex, mousey])
     },
+
+    drawAngle (ctx, mousex, mousey) {
+      if (this.angle.p1 === null) {
+        this.angle.p1 = [mousex, mousey]
+      } else if (this.angle.p2 === null) {
+        this.angle.p2 = [mousex, mousey]
+      } else if (this.angle.p3 === null) {
+        this.angle.p3 = [mousex, mousey]
+      } else {
+        this.angle.p1 = [mousex, mousey]
+        this.angle.p2 = null
+        this.angle.p3 = null
+      }
+
+      if (this.angle.p1 !== null && this.angle.p2 !== null && this.angle.p3 === null) {
+        ctx.beginPath()
+        ctx.moveTo(this.angle.p1[0], this.angle.p1[1])
+        ctx.lineTo(this.angle.p2[0], this.angle.p2[1])
+        ctx.strokeStyle = this.$store.state.strokeColor
+        ctx.lineWidth = this.$store.state.strokeWidth
+        ctx.lineJoin = ctx.lineCap = "round"
+        ctx.stroke()
+      } else if (this.angle.p1 !== null && this.angle.p2 !== null && this.angle.p3 !== null) {
+        ctx.beginPath()
+        ctx.moveTo(this.angle.p2[0], this.angle.p2[1])
+        ctx.lineTo(this.angle.p3[0], this.angle.p3[1])
+        ctx.strokeStyle = this.$store.state.strokeColor
+        ctx.lineWidth = this.$store.state.strokeWidth
+        ctx.lineJoin = ctx.lineCap = "round"
+        ctx.stroke()
+
+        const angle = this.calAngle(this.angle.p1, this.angle.p2, this.angle.p3)
+        // this.atanAngle(this.angle.p1, this.angle.p3)
+
+        // 각도 표시를 위한 함수
+        this.drawAngleArc(ctx, this.angle.p1, this.angle.p2, this.angle.p3)
+
+        // state 에 그려지는 각도 정보를 지속적으로 업데이트
+        // this.$store.getters.angleStorage.push({location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
+        this.$store.commit("pushAngle", {location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
+        this.addHistory()
+        
+        const output = document.getElementById("outputAngle")
+        output.innerHTML = "angle: "+angle
+      }
+    },
+
+    drawAngleArc (ctx, p1, p2, p3) {
+      const angle1 = Math.atan2(p1[1] - p2[1], p1[0] - p2[0])
+      const angle2 = Math.atan2(p3[1] - p2[1], p3[0] - p2[0])
+
+      const plusAngle1 = angle1 > 0 ? angle1 : -angle1
+      const plusAngle2 = angle2 > 0 ? angle2 : -angle2
+
+      const smallAngle = angle1 > angle2 ? angle2 : angle1
+      const largeAngle = angle1 > angle2 ? angle1 : angle2
+
+      // 평각 이상의 각도에 arc가 그려지는 것에 대한 예외 처리
+      if ((angle1 < 0 && angle2 > 0 || angle1 > 0 && angle2 < 0) && (plusAngle1 + plusAngle2) > 3.2) {
+        ctx.beginPath()
+        ctx.arc(p2[0], p2[1], 20, largeAngle, smallAngle)
+        ctx.stroke()
+      } else {
+        ctx.beginPath()
+        ctx.arc(p2[0], p2[1], 20, smallAngle, largeAngle)
+        ctx.stroke()
+      }
+    },
+
+    calAngle (p1, p2, p3) {
+      // 각도 계산 함수
+      const ab = Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2))
+      const bc = Math.sqrt(Math.pow(p2[0] - p3[0], 2) + Math.pow(p2[1] - p3[1], 2))
+      const ac = Math.sqrt(Math.pow(p3[0] - p1[0], 2) + Math.pow(p3[1] - p1[1], 2))
+
+      const angle = (Math.acos((bc * bc + ab * ab - ac * ac) / (2 * bc * ab)) * 180) / Math.PI
+
+      return angle
+    },
+
+    // atanAngle (p1) {
+    //   const angle = Math.atan2(-p1[1], p1[0])
+
+    //   // eslint-disable-next-line no-console
+    //   console.log(angle)
+    //   // eslint-disable-next-line no-console
+    //   console.log(angle * (180/Math.PI))
+    // },
 
     addHistory () {
       // this.$store.state.history.push({drawType: this.drawType, hidden: "F"})
@@ -419,7 +460,7 @@ export default {
           this.$store.commit("pushCircle", {location: this.temp.circle, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
           this.addHistory()
           this.temp.circle = null
-        } else if (this.temp.free !== []) {
+        } else if (this.temp.free.length !== 0) {
           this.$store.commit("pushFree", {location: this.temp.free, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
           this.addHistory()
           this.temp.free = []
