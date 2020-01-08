@@ -221,13 +221,11 @@ export default {
         ctx.stroke()
 
         const angle = this.calAngle(this.angle.p1, this.angle.p2, this.angle.p3)
-        // this.atanAngle(this.angle.p1, this.angle.p3)
 
         // 각도 표시를 위한 함수
         this.drawAngleArc(ctx, this.angle.p1, this.angle.p2, this.angle.p3)
 
         // state 에 그려지는 각도 정보를 지속적으로 업데이트
-        // this.$store.getters.angleStorage.push({location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
         this.$store.commit("pushAngle", {location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
         this.addHistory()
         
