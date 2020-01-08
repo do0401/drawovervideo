@@ -173,7 +173,7 @@ export default {
 
         // state 에 그려지는 각도 정보를 지속적으로 업데이트
         // this.$store.getters.angleStorage.push({location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
-        this.$store.commit("pushAngle", {location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F"})
+        this.$store.commit("pushAngle", {location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
         this.addHistory()
         
         const output = document.getElementById("outputAngle")
@@ -289,6 +289,9 @@ export default {
                 ctx.beginPath()
                 ctx.moveTo(p1[0], p1[1])
                 ctx.lineTo(p2[0], p2[1])
+                ctx.strokeStyle = entry.strokeColor
+                ctx.lineWidth = entry.strokeWidth
+                ctx.lineJoin = ctx.lineCap = "round"
                 ctx.stroke()
               }
             })
@@ -305,6 +308,8 @@ export default {
             ctx.lineTo(entry.location[1][0], entry.location[1][1])
             ctx.moveTo(entry.location[1][0], entry.location[1][1])
             ctx.lineTo(entry.location[2][0], entry.location[2][1])
+            ctx.strokeStyle = entry.strokeColor
+            ctx.lineWidth = entry.strokeWidth
             ctx.stroke()
           }
         });
@@ -316,6 +321,8 @@ export default {
           if (entry.hidden === "F") {
             ctx.beginPath()
             ctx.rect(entry.location[0], entry.location[1], entry.location[2], entry.location[3])
+            ctx.strokeStyle = entry.strokeColor
+            ctx.lineWidth = entry.strokeWidth
             ctx.stroke()
           }
         });
@@ -330,6 +337,8 @@ export default {
             ctx.scale(entry.location[0], entry.location[1])
             ctx.arc(entry.location[2], entry.location[3], 1, 0, 2*Math.PI)
             ctx.restore()
+            ctx.strokeStyle = entry.strokeColor
+            ctx.lineWidth = entry.strokeWidth
             ctx.stroke()
           }
         });
@@ -343,6 +352,8 @@ export default {
               ctx.beginPath()
               ctx.moveTo(freeEntry[0], freeEntry[1])
               ctx.lineTo(freeEntry[2], freeEntry[3])
+              ctx.strokeStyle = entry.strokeColor
+              ctx.lineWidth = entry.strokeWidth
               ctx.stroke()
               ctx.closePath()
             })
@@ -401,15 +412,15 @@ export default {
       canvas.addEventListener("mouseup", () => {
         mousedown = false
         if (this.temp.rect !== null) {
-          this.$store.commit("pushRect", {location: this.temp.rect, hidden: "F"})
+          this.$store.commit("pushRect", {location: this.temp.rect, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
           this.addHistory()
           this.temp.rect = null
         } else if (this.temp.circle !== null) {
-          this.$store.commit("pushCircle", {location: this.temp.circle, hidden: "F"})
+          this.$store.commit("pushCircle", {location: this.temp.circle, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
           this.addHistory()
           this.temp.circle = null
         } else if (this.temp.free !== []) {
-          this.$store.commit("pushFree", {location: this.temp.free, hidden: "F"})
+          this.$store.commit("pushFree", {location: this.temp.free, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
           this.addHistory()
           this.temp.free = []
         }
@@ -419,7 +430,7 @@ export default {
         e.preventDefault();
         if (this.drawType === "line" && this.temp.line !== null) {
           // this.$store.getters.lineStorage.push({location: this.temp.line, hidden: "F"})
-          this.$store.commit("pushLine", {location: this.temp.line, hidden: "F"})
+          this.$store.commit("pushLine", {location: this.temp.line, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
           this.addHistory()
           this.temp.line = null
           this.lineFrom = null
