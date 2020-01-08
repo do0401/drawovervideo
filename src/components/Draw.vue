@@ -21,6 +21,7 @@
           <v-radio label="Rectangle" color="red" value="rect"></v-radio>
           <v-radio label="Circle" color="red" value="circle"></v-radio>
           <v-radio label="Angle" color="red" value="angle"></v-radio>
+          <v-radio label="Free" color="red" value="free"></v-radio>
         </v-radio-group>
         
       </v-flex>
@@ -217,6 +218,20 @@ export default {
       this.redraw()
     },
 
+    drawFree (ctx, mousex, mousey, lastMousex, lastMousey) {
+      ctx.beginPath()
+      ctx.moveTo(lastMousex, lastMousey)
+      ctx.lineTo(mousex, mousey)
+      ctx.strokeStyle = "red"
+      ctx.lineWidth = 3
+      ctx.stroke()
+      ctx.closePath()
+
+      // state 에 그려지는 free line 정보를 지속적으로 업데이트
+      // 마지막에 state 에 저장된 정보를 mouseup 이벤트에서 state.storage 에 저장함
+      this.temp.free.push([lastMousex, lastMousey, mousex, mousey])
+    },
+
     addHistory () {
       // this.$store.state.history.push({drawType: this.drawType, hidden: "F"})
       this.$store.commit("addHistory", {drawType: this.drawType, hidden: "F"})
@@ -277,7 +292,7 @@ export default {
       }
 
       // 저장된 angle 이 있으면 다시 그려주는 코드
-      if (this.$store.getters.angleStorage !== null) {
+      if (this.$store.getters.angleStorage !== []) {
         this.$store.getters.angleStorage.forEach(entry => {
           if (entry.hidden === "F") {
             ctx.beginPath()
@@ -291,7 +306,7 @@ export default {
       }
 
       // 저장된 rectangle 이 있으면 다시 그려주는 코드
-      if (this.$store.getters.rectStorage !== null) {
+      if (this.$store.getters.rectStorage !== []) {
         this.$store.getters.rectStorage.forEach(entry => {
           if (entry.hidden === "F") {
             ctx.beginPath()
@@ -302,7 +317,7 @@ export default {
       }
 
       // 저장된 circle 이 있으면 다시 그려주는 코드
-      if (this.$store.getters.cirStorage !== null) {
+      if (this.$store.getters.cirStorage !== []) {
         this.$store.getters.cirStorage.forEach(entry => {
           if (entry.hidden === "F") {
             ctx.save()
@@ -311,6 +326,21 @@ export default {
             ctx.arc(entry.location[2], entry.location[3], 1, 0, 2*Math.PI)
             ctx.restore()
             ctx.stroke()
+          }
+        });
+      }
+
+      // 저장된 free line 이 있으면 다시 그려주는 코드
+      if (this.$store.getters.freeStorage !== []) {
+        this.$store.getters.freeStorage.forEach(entry => {
+          if (entry.hidden === "F") {
+            entry.location.forEach(freeEntry => {
+              ctx.beginPath()
+              ctx.moveTo(freeEntry[0], freeEntry[1])
+              ctx.lineTo(freeEntry[2], freeEntry[3])
+              ctx.stroke()
+              ctx.closePath()
+            })
           }
         });
       }
@@ -355,21 +385,34 @@ export default {
         mousedown = true
         lastMousex = parseInt(e.clientX - canvasx)
         lastMousey = parseInt(e.clientY - canvasy)
+
+        // drawType 이 자유 그리기인 경우, 마우스 다운 시 작은 사각 점이 찍힘
+        if (this.drawType === "free") {
+          ctx.beginPath()
+          ctx.fillStyle = "red"
+          ctx.fillRect(lastMousex, lastMousey, 2, 2)
+          ctx.closePath()
+        }
       })
 
       canvas.addEventListener("mouseup", () => {
         mousedown = false
         if (this.temp.rect !== null) {
-          // this.$store.getters.rectStorage.push({location: this.temp.rect, hidden: "F"})
           this.$store.commit("pushRect", {location: this.temp.rect, hidden: "F"})
           this.addHistory()
           this.temp.rect = null
         } else if (this.temp.circle !== null) {
-          // this.$store.getters.cirStorage.push({location: this.temp.circle, hidden: "F"})
           this.$store.commit("pushCircle", {location: this.temp.circle, hidden: "F"})
           this.addHistory()
           this.temp.circle = null
+        } else if (this.temp.free !== []) {
+          this.$store.commit("pushFree", {location: this.temp.free, hidden: "F"})
+          this.addHistory()
+          this.temp.free = []
         }
+
+        // eslint-disable-next-line no-console
+        console.log(this.$store.state.storage.free)
       })
 
       canvas.addEventListener("contextmenu", e => {
@@ -401,6 +444,10 @@ export default {
       })
 
       canvas.addEventListener("mousemove", e => {
+        if (this.drawType === "free") {
+          lastMousex = mousex
+          lastMousey = mousey
+        }
         mousex = parseInt(e.clientX - canvasx)
         mousey = parseInt(e.clientY - canvasy)
         // 사각형 그리기
@@ -414,6 +461,13 @@ export default {
         if (this.drawType === "circle") {
           if (mousedown) {
             this.drawCircle(canvas, ctx, mousex, mousey, lastMousex, lastMousey)
+          }
+        }
+
+        // 자유 그리기
+        if (this.drawType === "free") {
+          if (mousedown) {
+            this.drawFree(ctx, mousex, mousey, lastMousex, lastMousey)
           }
         }
       })
@@ -432,7 +486,8 @@ export default {
     temp: {
       line: null,
       rect: null,
-      circle: null
+      circle: null,
+      free: []
     }
   }),
 };
@@ -482,7 +537,7 @@ export default {
 
   #output {
     position: absolute;
-    top: 345px;
+    top: -30px;
     left: 600px;
     font-size: 0.7rem;
     color: white;
@@ -490,7 +545,7 @@ export default {
 
   #outputAngle {
     position: absolute;
-    top: 345px;
+    top: -30px;
     left: 10px;
     font-size: 0.7rem;
     color: white;

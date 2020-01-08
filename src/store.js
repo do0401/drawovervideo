@@ -9,7 +9,8 @@ export const store = new Vuex.Store({
       line: [],
       rect: [],
       circle: [],
-      angle: []
+      angle: [],
+      free: []
     },
     history: []
   },
@@ -26,6 +27,9 @@ export const store = new Vuex.Store({
     },
     angleStorage: function (state) {
       return state.storage.angle
+    },
+    freeStorage: function (state) {
+      return state.storage.free
     }
   },
 
@@ -84,11 +88,25 @@ export const store = new Vuex.Store({
       console.log("anglestorage", state.storage.angle)
     },
 
+    pushFree: (state, payload) => {
+      state.storage.free.push(payload)
+      // hidden 이 "T" 인 데이터는 배열 맨 뒤쪽으로 보냄(history undo/redo 문제 때문)
+      for (let i = state.storage.free.length - 1; i >= 0; i -= 1) {
+        if (state.storage.free[i].hidden === "T") {
+          state.storage.free.push(state.storage.free[i])
+          state.storage.free.splice(i, 1);
+        }
+      }
+      // eslint-disable-next-line no-console
+      console.log("freestorage", state.storage.free)
+    },
+
     initStorage: state => {
       state.storage.line = []
       state.storage.rect = []
       state.storage.circle = []
       state.storage.angle = []
+      state.storage.free = []
     },
 
     addHistory: (state, payload) => {
@@ -142,14 +160,23 @@ export const store = new Vuex.Store({
               })
               break;
             case "angle":
-            state.storage.angle.reverse().some(angleEntry => {
-              if (angleEntry.hidden === "F") {
-                angleEntry.hidden = "T"
-                state.storage.angle.reverse()
-                return true
-              }
-            })
-            break;
+              state.storage.angle.reverse().some(angleEntry => {
+                if (angleEntry.hidden === "F") {
+                  angleEntry.hidden = "T"
+                  state.storage.angle.reverse()
+                  return true
+                }
+              })
+              break;
+            case "free":
+              state.storage.free.reverse().some(freeEntry => {
+                if (freeEntry.hidden === "F") {
+                  freeEntry.hidden = "T"
+                  state.storage.free.reverse()
+                  return true
+                }
+              })
+              break;
             default:
               break;
           }
@@ -188,13 +215,21 @@ export const store = new Vuex.Store({
               })
               break;
             case "angle":
-            state.storage.angle.some(angleEntry => {
-              if (angleEntry.hidden === "T") {
-                angleEntry.hidden = "F"
-                return true
-              }
-            })
-            break;
+              state.storage.angle.some(angleEntry => {
+                if (angleEntry.hidden === "T") {
+                  angleEntry.hidden = "F"
+                  return true
+                }
+              })
+              break;
+            case "free":
+              state.storage.free.some(freeEntry => {
+                if (freeEntry.hidden === "T") {
+                  freeEntry.hidden = "F"
+                  return true
+                }
+              })
+              break;
             default:
               break;
           }
