@@ -1,38 +1,43 @@
 <template>
   <v-app>
-    <v-container fluid>
+    <v-container class="videoContainer" fluid>
       <video id="video" src="../assets/videos/example.mp4" width="500" @resize="resizeCanvas"></video>
       <canvas id="canvas"></canvas>
     </v-container>
-    <v-card class="toolbar" max-width="700" height="50">
+    <v-card class="toolbar" max-width="700" height="50" outlined>
       <v-container>
-      <v-flex xs12>
-        <v-btn class="play btn" color="#37474F" @click="play" dark small>Play</v-btn>
-        <v-btn class="pause btn" color="#37474F" @click="pause" dark small>Stop</v-btn>
-        <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
-        <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon>
-        <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
-        <!-- <v-icon class="play" color="#37474F" @click="play">mdi-play-circle</v-icon>
-        <v-icon class="stop" color="#37474F" @click="pause">mdi-stop-circle</v-icon> -->
-        <div id="output"></div>
-        <div id="outputAngle"></div>
-        <v-radio-group class="radioGroup" v-model="drawType" row @change="drawInit">
-          <v-radio label="Line" color="red" value="line"></v-radio>
-          <v-radio label="Rectangle" color="red" value="rect"></v-radio>
-          <v-radio label="Circle" color="red" value="circle"></v-radio>
-          <v-radio label="Angle" color="red" value="angle"></v-radio>
-          <v-radio label="Free" color="red" value="free"></v-radio>
-        </v-radio-group>
-        
-      </v-flex>
+        <v-flex xs12>
+          <v-btn class="play btn" color="#37474F" @click="play" dark small>Play</v-btn>
+          <v-btn class="pause btn" color="#37474F" @click="pause" dark small>Stop</v-btn>
+          <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
+          <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon>
+          <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
+          <!-- <v-icon class="play" color="#37474F" @click="play">mdi-play-circle</v-icon>
+          <v-icon class="stop" color="#37474F" @click="pause">mdi-stop-circle</v-icon> -->
+          <div id="output"></div>
+          <div id="outputAngle"></div>
+          <v-radio-group class="radioGroup" v-model="drawType" row @change="drawInit">
+            <v-radio label="Line" color="red" value="line"></v-radio>
+            <v-radio label="Rectangle" color="red" value="rect"></v-radio>
+            <v-radio label="Circle" color="red" value="circle"></v-radio>
+            <v-radio label="Angle" color="red" value="angle"></v-radio>
+            <v-radio label="Free" color="red" value="free"></v-radio>
+          </v-radio-group>
+        </v-flex>
       </v-container>
     </v-card>
+    <ColorPicker/>
   </v-app>
 </template>
 
 <script>
+import ColorPicker from './ColorPicker'
 export default {
   name: 'Draw',
+
+  components: {
+    ColorPicker
+  },
 
   mounted () {
     this.mouseMove()
@@ -115,7 +120,7 @@ export default {
             ctx.beginPath()
             ctx.moveTo(this.lineFrom[0], this.lineFrom[1])
             ctx.lineTo(this.lineTo[0], this.lineTo[1])
-            ctx.strokeStyle = "red"
+            ctx.strokeStyle = this.$store.state.strokeColor
             ctx.lineWidth = 3
             ctx.lineJoin = ctx.lineCap = "round"
             ctx.stroke()
@@ -146,7 +151,7 @@ export default {
         ctx.beginPath()
         ctx.moveTo(this.angle.p1[0], this.angle.p1[1])
         ctx.lineTo(this.angle.p2[0], this.angle.p2[1])
-        ctx.strokeStyle = "red"
+        ctx.strokeStyle = this.$store.state.strokeColor
         ctx.lineWidth = 3
         ctx.lineJoin = ctx.lineCap = "round"
         ctx.stroke()
@@ -154,7 +159,7 @@ export default {
         ctx.beginPath()
         ctx.moveTo(this.angle.p2[0], this.angle.p2[1])
         ctx.lineTo(this.angle.p3[0], this.angle.p3[1])
-        ctx.strokeStyle = "red"
+        ctx.strokeStyle = this.$store.state.strokeColor
         ctx.lineWidth = 3
         ctx.lineJoin = ctx.lineCap = "round"
         ctx.stroke()
@@ -182,7 +187,7 @@ export default {
       let width = mousex - lastMousex
       let height = mousey - lastMousey
       ctx.rect(lastMousex, lastMousey, width, height)
-      ctx.strokeStyle = "red"
+      ctx.strokeStyle = this.$store.state.strokeColor
       ctx.lineWidth = 3
       ctx.stroke()
       // state 에 그려지는 rect 정보를 지속적으로 업데이트
@@ -207,7 +212,7 @@ export default {
       ctx.arc(centerx, centery, 1, 0, 2*Math.PI)
       // Restore and draw
       ctx.restore()
-      ctx.strokeStyle = "red"
+      ctx.strokeStyle = this.$store.state.strokeColor
       ctx.lineWidth = 3
       ctx.stroke()
       // state 에 그려지는 ciricle 정보를 지속적으로 업데이트
@@ -222,7 +227,7 @@ export default {
       ctx.beginPath()
       ctx.moveTo(lastMousex, lastMousey)
       ctx.lineTo(mousex, mousey)
-      ctx.strokeStyle = "red"
+      ctx.strokeStyle = this.$store.state.strokeColor
       ctx.lineWidth = 3
       ctx.stroke()
       ctx.closePath()
@@ -408,9 +413,6 @@ export default {
           this.addHistory()
           this.temp.free = []
         }
-
-        // eslint-disable-next-line no-console
-        console.log(this.$store.state.storage.free)
       })
 
       canvas.addEventListener("contextmenu", e => {
@@ -496,6 +498,10 @@ export default {
 </script>
 
 <style>
+  .videoContainer {
+    height: 365px;
+  }
+
   #video {
     width: 700px;
     height: auto;
@@ -512,10 +518,6 @@ export default {
     background-color: rgba(255, 0, 0, 0);
   }
 
-  .toolbar {
-    top: 350px;
-  }
-
   .btn {
     position: relative;
     /* top: 335px; */
@@ -526,15 +528,15 @@ export default {
   }
 
   .undo {
-    left: 25px;
+    left: 400px;
   }
 
   .redo {
-    left: 45px;
+    left: 420px;
   }
 
   .clear {
-    left: 65px;
+    left: 440px;
   }
 
   #output {
@@ -556,6 +558,15 @@ export default {
   .radioGroup {
     position: relative;
     top: -46px;
-    left: 320px;
+    left: 140px;
+    width: 55%;
+  }
+
+  .radioGroup label {
+    font-size: 0.8rem;
+  }
+
+  .radioGroup .v-radio {
+    margin-right: 8px;
   }
 </style>

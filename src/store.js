@@ -12,7 +12,8 @@ export const store = new Vuex.Store({
       angle: [],
       free: []
     },
-    history: []
+    history: [],
+    strokeColor: '#E62B2B'
   },
 
   getters: {
@@ -30,6 +31,9 @@ export const store = new Vuex.Store({
     },
     freeStorage: function (state) {
       return state.storage.free
+    },
+    strokeColor: function (state) {
+      return state.strokeColor
     }
   },
 
