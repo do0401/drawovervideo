@@ -260,30 +260,25 @@ export default {
       const smallAngle = plusAngle1 > plusAngle2 ? plusAngle2 : plusAngle1
       const largeAngle = plusAngle1 > plusAngle2 ? plusAngle1 : plusAngle2
 
-      // 평각 이상의 각도에 arc가 그려지는 것에 대한 예외 처리
+      let rotateAngle = null
+
       if (largeAngle - smallAngle > 180) {
-        this.angle.arc = new Konva.Arc({
-          x: p2[0],
-          y: p2[1],
-          innerRadius: 20,
-          outerRadius: 20,
-          angle,
-          rotation: largeAngle,
-          stroke: this.$store.state.strokeColor,
-          strokeWidth: this.$store.state.strokeWidth
-        })
+        rotateAngle = largeAngle
       } else {
-        this.angle.arc = new Konva.Arc({
-          x: p2[0],
-          y: p2[1],
-          innerRadius: 20,
-          outerRadius: 20,
-          angle,
-          rotation: smallAngle,
-          stroke: this.$store.state.strokeColor,
-          strokeWidth: this.$store.state.strokeWidth
-        })
+        rotateAngle = smallAngle
       }
+
+      // 평각 이상의 각도에 arc가 그려지는 것에 대한 예외 처리
+      this.angle.arc = new Konva.Arc({
+        x: p2[0],
+        y: p2[1],
+        innerRadius: 20,
+        outerRadius: 20,
+        angle,
+        rotation: rotateAngle,
+        stroke: this.$store.state.strokeColor,
+        strokeWidth: this.$store.state.strokeWidth
+      })
       
       this.layer.add(this.angle.arc)
       this.canvas.add(this.layer)
