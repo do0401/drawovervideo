@@ -9,8 +9,8 @@
         <v-flex xs12>
           <v-btn class="play btn" color="#37474F" @click="play" dark small>Play</v-btn>
           <v-btn class="pause btn" color="#37474F" @click="pause" dark small>Stop</v-btn>
-          <!-- <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon> -->
-          <!-- <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon> -->
+          <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
+          <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon>
           <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
           <div id="output"></div>
           <div id="outputAngle"></div>
@@ -24,20 +24,20 @@
         </v-flex>
       </v-container>
     </v-card>
-    <!-- <ColorPicker/> -->
+    <ColorPicker/>
   </v-app>
 </template>
 
 <script>
-// import ColorPicker from './ColorPicker'
+import ColorPicker from './ColorPicker'
 import Konva from 'konva'
 
 export default {
   name: 'Draw',
 
-  // components: {
-  //   ColorPicker
-  // },
+  components: {
+    ColorPicker
+  },
 
   mounted () {
   },
@@ -242,11 +242,11 @@ export default {
         const angle = this.calAngle(this.angle.p1, this.angle.p2, this.angle.p3)
 
         // 각도 표시를 위한 함수
-        this.drawAngleArc(angle, this.angle.p1, this.angle.p2, this.angle.p3)
+        this.drawAngleArc(angle, [...this.angle.p1, ...this.angle.p2, ...this.angle.p3])
 
         // state 에 그려지는 각도 정보를 지속적으로 업데이트
-        this.$store.commit("pushAngle", {location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
-        // this.addHistory()
+        this.$store.commit("pushAngle", {location: [[...this.angle.p1, ...this.angle.p2, ...this.angle.p3], angle], hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
+        this.addHistory()
 
         this.redraw()
         
@@ -255,7 +255,10 @@ export default {
       }
     },
 
-    drawAngleArc (angle, p1, p2, p3) {
+    drawAngleArc (angle, anglePath) {
+      const p1 = [anglePath[0], anglePath[1]]
+      const p2 = [anglePath[2], anglePath[3]]
+      const p3 = [anglePath[4], anglePath[5]]
       // 각 라인 각도
       const angle1 = Math.atan2(p1[1] - p2[1], p1[0] - p2[0])*(180/Math.PI)
       const angle2 = Math.atan2(p3[1] - p2[1], p3[0] - p2[0])*(180/Math.PI)
@@ -303,32 +306,42 @@ export default {
       return angle
     },
 
-    // addHistory () {
-    //   // this.$store.state.history.push({drawType: this.drawType, hidden: "F"})
-    //   this.$store.commit("addHistory", {drawType: this.drawType, hidden: "F"})
-    // },
+    addHistory () {
+      // this.$store.state.history.push({drawType: this.drawType, hidden: "F"})
+      this.$store.commit("addHistory", {drawType: this.drawType, hidden: "F"})
+    },
 
-    // undoHistory () {
-    //   // Canvas
-    //   const canvas = document.getElementById("canvas")
-    //   const ctx = canvas.getContext("2d")
+    undoHistory () {
+      this.$store.commit("undoHistory")
 
-    //   this.$store.commit("undoHistory")
+      // layer 의 chlildren 삭제
+      this.layer.destroyChildren()
+      this.canvas.draw()
 
-    //   ctx.clearRect(0, 0, canvas.width, canvas.height);
-    //   this.redraw()
-    // },
+      this.drawInit()
+      // this.redraw()
+    },
 
-    // redoHistory () {
-    //   // Canvas
-    //   const canvas = document.getElementById("canvas")
-    //   const ctx = canvas.getContext("2d")
+    redoHistory () {
+      this.$store.commit("redoHistory")
 
-    //   this.$store.commit("redoHistory")
+      // layer 의 chlildren 삭제
+      this.layer.destroyChildren()
+      this.canvas.draw()
 
-    //   ctx.clearRect(0, 0, canvas.width, canvas.height);
-    //   this.redraw()
-    // },
+      this.drawInit()
+      // this.redraw()
+    },
+
+    removeDrawing () {
+      // layer 의 chlildren 삭제
+      this.layer.destroyChildren()
+      this.canvas.draw()
+
+      this.$store.commit("initStorage")
+
+      this.drawInit()
+    },
 
     redraw () {
       // eslint-disable-next-line no-console
@@ -340,8 +353,8 @@ export default {
           if (entry.hidden === "F") {
             const redrawLine = new Konva.Line({
               points: entry.location,
-              stroke: this.$store.state.strokeColor,
-              strokeWidth: this.$store.state.strokeWidth,
+              stroke: entry.strokeColor,
+              strokeWidth: entry.strokeWidth,
               lineCap: 'round',
               lineJoin: 'round'
             })
@@ -361,8 +374,8 @@ export default {
               y: entry.location[1],
               width: entry.location[2],
               height: entry.location[3],
-              stroke: this.$store.state.strokeColor,
-              strokeWidth: this.$store.state.strokeWidth
+              stroke: entry.strokeColor,
+              strokeWidth: entry.strokeWidth
             })
 
             this.layer.add(redrawRect)
@@ -380,8 +393,8 @@ export default {
               y: entry.location[3],
               radiusX: entry.location[0],
               radiusY: entry.location[1],
-              stroke: this.$store.state.strokeColor,
-              strokeWidth: this.$store.state.strokeWidth
+              stroke: entry.strokeColor,
+              strokeWidth: entry.strokeWidth
             })
 
             this.layer.add(redrawCircle)
@@ -396,8 +409,8 @@ export default {
           if (entry.hidden === "F") {
             const redrawFree = new Konva.Line({
               points: entry.location,
-              stroke: this.$store.state.strokeColor,
-              strokeWidth: this.$store.state.strokeWidth,
+              stroke: entry.strokeColor,
+              strokeWidth: entry.strokeWidth,
               lineCap: 'round',
               lineJoin: 'round'
             })
@@ -412,25 +425,23 @@ export default {
       if (this.$store.getters.angleStorage !== []) {
         this.$store.getters.angleStorage.forEach(entry => {
           if (entry.hidden === "F") {
-            // ctx.beginPath()
-            // ctx.moveTo(entry.location[0][0], entry.location[0][1])
-            // ctx.lineTo(entry.location[1][0], entry.location[1][1])
-            // ctx.moveTo(entry.location[1][0], entry.location[1][1])
-            // ctx.lineTo(entry.location[2][0], entry.location[2][1])
-            // ctx.strokeStyle = entry.strokeColor
-            // ctx.lineWidth = entry.strokeWidth
-            // ctx.stroke()
+            const redrawAngle = new Konva.Line({
+              points: entry.location[0],
+              stroke: entry.strokeColor,
+              strokeWidth: entry.strokeWidth,
+              lineCap: 'round',
+              lineJoin: 'round'
+            })
+
+            // 각도 표시를 위한 함수
+            this.drawAngleArc(entry.location[1], entry.location[0])
+
+            this.layer.add(redrawAngle)
+            this.canvas.add(this.layer)
           }
         });
       }
-    },
-
-    removeDrawing () {
-      this.canvas.clear()
-
-      this.drawInit()
-
-      // this.$store.commit("initStorage")
+      this.canvas.draw()
     },
 
     setStage () {
@@ -489,17 +500,17 @@ export default {
         mousedown = false
         if (this.temp.rect !== null) {
           this.$store.commit("pushRect", {location: this.temp.rect, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
-          // this.addHistory()
+          this.addHistory()
           this.temp.rect = null
           this.redraw()
         } else if (this.temp.circle !== null) {
           this.$store.commit("pushCircle", {location: this.temp.circle, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
-          // this.addHistory()
+          this.addHistory()
           this.temp.circle = null
           this.redraw()
         } else if (this.temp.free.length !== 0) {
           this.$store.commit("pushFree", {location: this.temp.free, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
-          // this.addHistory()
+          this.addHistory()
           this.temp.free = []
           this.redraw()
         }
@@ -530,7 +541,7 @@ export default {
         } else {
           if (this.drawType === "line" && this.temp.line !== null) {
             this.$store.commit("pushLine", {location: this.temp.line, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
-            // this.addHistory()
+            this.addHistory()
             this.temp.line = null
             this.redraw()
           }
