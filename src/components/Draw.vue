@@ -9,9 +9,9 @@
         <v-flex xs12>
           <v-btn class="play btn" color="#37474F" @click="play" dark small>Play</v-btn>
           <v-btn class="pause btn" color="#37474F" @click="pause" dark small>Stop</v-btn>
-          <!-- <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
-          <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon>
-          <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn> -->
+          <!-- <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon> -->
+          <!-- <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon> -->
+          <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
           <div id="output"></div>
           <div id="outputAngle"></div>
           <v-radio-group class="radioGroup" v-model="drawType" row @change="drawInit">
@@ -40,30 +40,24 @@ export default {
   // },
 
   mounted () {
-    this.mouseMove()
-    this.draw()
   },
 
   methods: {
     resizeCanvas () {
-        const video = document.getElementById("video")
+      // eslint-disable-next-line no-console
+      console.log("resizeCanvas mounted")
+      const video = document.getElementById("video")
 
-        // const t = video.offsetTop+"px"
-        // const l = video.offsetLeft+"px"
-        const w = video.offsetWidth
-        const h = video.offsetHeight
-        
-        this.canvas = new Konva.Stage({
-          container: 'canvas'
-        })
+      const w = video.offsetWidth
+      const h = video.offsetHeight
+      
+      this.setStage()
 
-        // stage.offsetX(l)
-        // stage.offsetY(t)
-        this.canvas.width(w)
-        this.canvas.height(h)
+      this.canvas.width(w)
+      this.canvas.height(h)
 
-        this.layer = new Konva.Layer()
-        this.canvas.add(this.layer)
+      this.draw()
+      this.mouseMove()
     },
 
     play () {
@@ -82,24 +76,34 @@ export default {
       const canvas = document.getElementById("canvas")
       const output = document.getElementById("output")
 
-      canvas.addEventListener("mousemove", e => {
+      this.canvas.on("mousemove", e => {
         let canvasx = canvas.offsetLeft
         let canvasy = canvas.offsetTop
-        let mousex = parseInt(e.clientX - canvasx)
-        let mousey = parseInt(e.clientY - canvasy)
+        let mousex = parseInt(e.evt.clientX - canvasx)
+        let mousey = parseInt(e.evt.clientY - canvasy)
 
         output.innerHTML = "location: "+mousex+", "+mousey
       })
     },
 
     drawInit () {
-      this.lineFrom = null
-      this.lineTo = null
+      this.angle.path = null
+      this.angle.arc = null
       this.angle.p1 = null
       this.angle.p2 = null
       this.angle.p3 = null
 
-      // this.redraw()
+      this.line = null
+      this.rect = null
+      this.circle = null
+      this.free = null
+
+      this.temp.line = null
+      this.temp.rect = null
+      this.temp.circle = null
+      this.temp.free = []
+
+      this.redraw()
     },
 
     drawLine (mousex, mousey) {
@@ -125,13 +129,15 @@ export default {
         this.layer.add(this.line)
         this.canvas.add(this.layer)
       }
+
+      // 저장된 line 이 있으면 다시 그려주는 코드
+      // this.redraw()
     },
 
     drawRect (mousex, mousey, lastMousex, lastMousey) {
       if (this.rect !== null) {
         this.rect.remove()
       }
-
       let width = mousex - lastMousex
       let height = mousey - lastMousey
 
@@ -238,9 +244,11 @@ export default {
         // 각도 표시를 위한 함수
         this.drawAngleArc(angle, this.angle.p1, this.angle.p2, this.angle.p3)
 
-        // // state 에 그려지는 각도 정보를 지속적으로 업데이트
-        // this.$store.commit("pushAngle", {location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
+        // state 에 그려지는 각도 정보를 지속적으로 업데이트
+        this.$store.commit("pushAngle", {location: [this.angle.p1, this.angle.p2, this.angle.p3, angle], hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
         // this.addHistory()
+
+        this.redraw()
         
         const output = document.getElementById("outputAngle")
         output.innerHTML = "angle: "+angle
@@ -322,119 +330,118 @@ export default {
     //   this.redraw()
     // },
 
-    // redraw () {
-    //   // Canvas
-    //   const canvas = document.getElementById("canvas")
-    //   const ctx = canvas.getContext("2d")
+    redraw () {
+      // eslint-disable-next-line no-console
+      console.log("redraw")
 
-    //   // 저장된 line 이 있으면 다시 그려주는 코드
-    //   if (this.$store.getters.lineStorage !== null) {
-    //     this.$store.getters.lineStorage.forEach(entry => {
-    //       if (entry.hidden === "F") {
-    //         let p1 = null
-    //         let p2 = null
-    //         entry.location.forEach(locEntry => {
-    //           if (p1 === null) {
-    //             p1 = locEntry
-    //           } else if (p1 !== null && p2 === null) {
-    //             p2 = locEntry
-    //           } else if (p1 !== null && p2 !== null) {
-    //             p1 = [...p2]
-    //             p2 = locEntry
-    //           }
+      // 저장된 line 이 있으면 다시 그려주는 코드
+      if (this.$store.getters.lineStorage !== null) {
+        this.$store.getters.lineStorage.forEach(entry => {
+          if (entry.hidden === "F") {
+            const redrawLine = new Konva.Line({
+              points: entry.location,
+              stroke: this.$store.state.strokeColor,
+              strokeWidth: this.$store.state.strokeWidth,
+              lineCap: 'round',
+              lineJoin: 'round'
+            })
 
-    //           if (p1 !== null && p2 !== null) {
-    //             ctx.beginPath()
-    //             ctx.moveTo(p1[0], p1[1])
-    //             ctx.lineTo(p2[0], p2[1])
-    //             ctx.strokeStyle = entry.strokeColor
-    //             ctx.lineWidth = entry.strokeWidth
-    //             ctx.lineJoin = ctx.lineCap = "round"
-    //             ctx.stroke()
-    //           }
-    //         })
-    //       }
-    //     });
-    //   }
+            this.layer.add(redrawLine)
+            this.canvas.add(this.layer)
+          }
+        });
+      }
 
-    //   // 저장된 angle 이 있으면 다시 그려주는 코드
-    //   if (this.$store.getters.angleStorage !== []) {
-    //     this.$store.getters.angleStorage.forEach(entry => {
-    //       if (entry.hidden === "F") {
-    //         ctx.beginPath()
-    //         ctx.moveTo(entry.location[0][0], entry.location[0][1])
-    //         ctx.lineTo(entry.location[1][0], entry.location[1][1])
-    //         ctx.moveTo(entry.location[1][0], entry.location[1][1])
-    //         ctx.lineTo(entry.location[2][0], entry.location[2][1])
-    //         ctx.strokeStyle = entry.strokeColor
-    //         ctx.lineWidth = entry.strokeWidth
-    //         ctx.stroke()
-    //       }
-    //     });
-    //   }
+      // 저장된 rectangle 이 있으면 다시 그려주는 코드
+      if (this.$store.getters.rectStorage !== []) {
+        this.$store.getters.rectStorage.forEach(entry => {
+          if (entry.hidden === "F") {
+            const redrawRect = new Konva.Rect({
+              x: entry.location[0],
+              y: entry.location[1],
+              width: entry.location[2],
+              height: entry.location[3],
+              stroke: this.$store.state.strokeColor,
+              strokeWidth: this.$store.state.strokeWidth
+            })
 
-    //   // 저장된 rectangle 이 있으면 다시 그려주는 코드
-    //   if (this.$store.getters.rectStorage !== []) {
-    //     this.$store.getters.rectStorage.forEach(entry => {
-    //       if (entry.hidden === "F") {
-    //         ctx.beginPath()
-    //         ctx.rect(entry.location[0], entry.location[1], entry.location[2], entry.location[3])
-    //         ctx.strokeStyle = entry.strokeColor
-    //         ctx.lineWidth = entry.strokeWidth
-    //         ctx.stroke()
-    //       }
-    //     });
-    //   }
+            this.layer.add(redrawRect)
+            this.canvas.add(this.layer)
+          }
+        });
+      }
 
-    //   // 저장된 circle 이 있으면 다시 그려주는 코드
-    //   if (this.$store.getters.cirStorage !== []) {
-    //     this.$store.getters.cirStorage.forEach(entry => {
-    //       if (entry.hidden === "F") {
-    //         ctx.save()
-    //         ctx.beginPath()
-    //         ctx.scale(entry.location[0], entry.location[1])
-    //         ctx.arc(entry.location[2], entry.location[3], 1, 0, 2*Math.PI)
-    //         ctx.restore()
-    //         ctx.strokeStyle = entry.strokeColor
-    //         ctx.lineWidth = entry.strokeWidth
-    //         ctx.stroke()
-    //       }
-    //     });
-    //   }
+      // 저장된 circle 이 있으면 다시 그려주는 코드
+      if (this.$store.getters.cirStorage !== []) {
+        this.$store.getters.cirStorage.forEach(entry => {
+          if (entry.hidden === "F") {
+            const redrawCircle = new Konva.Ellipse({
+              x: entry.location[2],
+              y: entry.location[3],
+              radiusX: entry.location[0],
+              radiusY: entry.location[1],
+              stroke: this.$store.state.strokeColor,
+              strokeWidth: this.$store.state.strokeWidth
+            })
 
-    //   // 저장된 free line 이 있으면 다시 그려주는 코드
-    //   if (this.$store.getters.freeStorage !== []) {
-    //     this.$store.getters.freeStorage.forEach(entry => {
-    //       if (entry.hidden === "F") {
-    //         entry.location.forEach(freeEntry => {
-    //           ctx.beginPath()
-    //           ctx.moveTo(freeEntry[0], freeEntry[1])
-    //           ctx.lineTo(freeEntry[2], freeEntry[3])
-    //           ctx.strokeStyle = entry.strokeColor
-    //           ctx.lineWidth = entry.strokeWidth
-    //           ctx.stroke()
-    //           ctx.closePath()
-    //         })
-    //       }
-    //     });
-    //   }
-    // },
+            this.layer.add(redrawCircle)
+            this.canvas.add(this.layer)
+          }
+        });
+      }
 
-    // removeDrawing () {
-    //   // Canvas
-    //   const canvas = document.getElementById("canvas")
-    //   const ctx = canvas.getContext("2d")
+      // 저장된 free line 이 있으면 다시 그려주는 코드
+      if (this.$store.getters.freeStorage !== []) {
+        this.$store.getters.freeStorage.forEach(entry => {
+          if (entry.hidden === "F") {
+            const redrawFree = new Konva.Line({
+              points: entry.location,
+              stroke: this.$store.state.strokeColor,
+              strokeWidth: this.$store.state.strokeWidth,
+              lineCap: 'round',
+              lineJoin: 'round'
+            })
 
-    //   this.lineFrom = null
-    //   this.lineTo = null
-    //   this.angle.p1 = null
-    //   this.angle.p2 = null
-    //   this.angle.p3 = null
+            this.layer.add(redrawFree)
+            this.canvas.add(this.layer)
+          }
+        });
+      }
 
-    //   this.$store.commit("initStorage")
+      // 저장된 angle 이 있으면 다시 그려주는 코드
+      if (this.$store.getters.angleStorage !== []) {
+        this.$store.getters.angleStorage.forEach(entry => {
+          if (entry.hidden === "F") {
+            // ctx.beginPath()
+            // ctx.moveTo(entry.location[0][0], entry.location[0][1])
+            // ctx.lineTo(entry.location[1][0], entry.location[1][1])
+            // ctx.moveTo(entry.location[1][0], entry.location[1][1])
+            // ctx.lineTo(entry.location[2][0], entry.location[2][1])
+            // ctx.strokeStyle = entry.strokeColor
+            // ctx.lineWidth = entry.strokeWidth
+            // ctx.stroke()
+          }
+        });
+      }
+    },
 
-    //   ctx.clearRect(0, 0, canvas.width, canvas.height)
-    // },
+    removeDrawing () {
+      this.canvas.clear()
+
+      this.drawInit()
+
+      // this.$store.commit("initStorage")
+    },
+
+    setStage () {
+      this.canvas = new Konva.Stage({
+        container: 'canvas'
+      })
+
+      this.layer = new Konva.Layer()
+
+      this.canvas.add(this.layer)
+    },
 
     draw () {
       // eslint-disable-next-line no-console
@@ -442,21 +449,21 @@ export default {
 
       // Stage
       const canvas = document.getElementById("canvas")
-
+      
       // Variable
       let lastMousex = 0
       let lastMousey = 0
       let mousex = 0
       let mousey = 0
-      // eslint-disable-next-line no-unused-vars
       let mousedown = false
 
-      canvas.addEventListener("mousedown", e => {
+      this.canvas.on("mousedown", e => {
         mousedown = true
         let canvasx = canvas.offsetLeft
         let canvasy = canvas.offsetTop
-        lastMousex = parseInt(e.clientX - canvasx)
-        lastMousey = parseInt(e.clientY - canvasy)
+        
+        lastMousex = parseInt(e.evt.clientX - canvasx)
+        lastMousey = parseInt(e.evt.clientY - canvasy)
 
         // 자유 그리기
         if (this.drawType === "free") {
@@ -478,64 +485,67 @@ export default {
         }
       })
 
-      canvas.addEventListener("mouseup", () => {
+      this.canvas.on("mouseup", () => {
         mousedown = false
-        // if (this.temp.rect !== null) {
-        //   this.$store.commit("pushRect", {location: this.temp.rect, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
-        //   this.addHistory()
-        //   this.temp.rect = null
-        // } else if (this.temp.circle !== null) {
-        //   this.$store.commit("pushCircle", {location: this.temp.circle, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
-        //   this.addHistory()
-        //   this.temp.circle = null
-        // } else if (this.temp.free.length !== 0) {
-        //   this.$store.commit("pushFree", {location: this.temp.free, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
-        //   this.addHistory()
-        //   this.temp.free = []
-        // }
-      })
-
-      canvas.addEventListener("contextmenu", e => {
-        e.preventDefault();
-        if (this.drawType === "line" && this.temp.line !== null) {
-          // this.$store.commit("pushLine", {location: this.temp.line, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
+        if (this.temp.rect !== null) {
+          this.$store.commit("pushRect", {location: this.temp.rect, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
           // this.addHistory()
-          this.temp.line = null
-          this.lineFrom = null
-          this.lineTo = null
-        }
-        return false
-      })
-
-      canvas.addEventListener("click", e => {
-        let canvasx = canvas.offsetLeft
-        let canvasy = canvas.offsetTop
-        mousex = parseInt(e.clientX - canvasx)
-        mousey = parseInt(e.clientY - canvasy)
-
-        // 라인 그리기
-        if (this.drawType === "line") {
-          // eslint-disable-next-line no-console
-          console.log("line click")
-          this.drawLine(mousex, mousey)
-        }
-
-        // 각도 확인
-        if (this.drawType === "angle") {
-          this.drawAngle(mousex, mousey)
+          this.temp.rect = null
+          this.redraw()
+        } else if (this.temp.circle !== null) {
+          this.$store.commit("pushCircle", {location: this.temp.circle, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
+          // this.addHistory()
+          this.temp.circle = null
+          this.redraw()
+        } else if (this.temp.free.length !== 0) {
+          this.$store.commit("pushFree", {location: this.temp.free, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
+          // this.addHistory()
+          this.temp.free = []
+          this.redraw()
         }
       })
 
-      // eslint-disable-next-line no-unused-vars
-      canvas.addEventListener("mousemove", e => {
+      // 우클릭 팝업 이벤트 삭제
+      this.canvas.on("contextmenu", e => {
+        e.evt.preventDefault();
+      })
+
+      this.canvas.on("click", e => {
+        // e.evt.which 가 1 이면 좌클릭, 3 이면 우클릭
+        if (e.evt.which === 1) {
+          let canvasx = canvas.offsetLeft
+          let canvasy = canvas.offsetTop
+          mousex = parseInt(e.evt.clientX - canvasx)
+          mousey = parseInt(e.evt.clientY - canvasy)
+  
+          // 라인 그리기
+          if (this.drawType === "line") {
+            this.drawLine(mousex, mousey)
+          }
+  
+          // 각도 확인
+          if (this.drawType === "angle") {
+            this.drawAngle(mousex, mousey)
+          }
+        } else {
+          if (this.drawType === "line" && this.temp.line !== null) {
+            this.$store.commit("pushLine", {location: this.temp.line, hidden: "F", strokeColor: this.$store.state.strokeColor, strokeWidth: this.$store.state.strokeWidth})
+            // this.addHistory()
+            this.temp.line = null
+            this.redraw()
+          }
+        }
+      })
+
+      this.canvas.on("mousemove", e => {
         let canvasx = canvas.offsetLeft
         let canvasy = canvas.offsetTop
         if (this.drawType === "free") {
           lastMousex = mousex
           lastMousey = mousey
         }
-        mousex = parseInt(e.clientX - canvasx)
-        mousey = parseInt(e.clientY - canvasy)
+        mousex = parseInt(e.evt.clientX - canvasx)
+        mousey = parseInt(e.evt.clientY - canvasy)
         // 사각형 그리기
         if (this.drawType === "rect") {
           if (mousedown) {
