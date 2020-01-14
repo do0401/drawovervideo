@@ -9,8 +9,8 @@
         <v-flex xs12>
           <v-btn class="play btn" color="#37474F" @click="play" dark small>Play</v-btn>
           <v-btn class="pause btn" color="#37474F" @click="pause" dark small>Stop</v-btn>
-          <!-- <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
-          <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon> -->
+          <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
+          <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon>
           <!-- <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn> -->
           <div id="output"></div>
           <div id="outputAngle"></div>
@@ -63,7 +63,19 @@ export default {
       this.layer.add(this.r1)
 
       // draw a rectangle to be used as the rubber area
-      this.rect = new Konva.Rect({})
+      this.rect = new Konva.Rect({
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        stroke: this.$store.state.strokeColor,
+        dash: [2, 2]
+      })
+
+      this.rect.listening(false)
+      this.layer.add(this.rect)
+
+      this.canvas.draw()
     },
 
     resizeCanvas () {
@@ -76,7 +88,7 @@ export default {
       
       this.setStage(w, h)
 
-      // this.draw()
+      this.draw()
       // this.mouseMove()
     },
 
@@ -90,6 +102,135 @@ export default {
       const videoPlayer = document.getElementById("video")
 
       videoPlayer.pause()
+    },
+
+    draw () {
+      // start the rubber drawing on mouse down.
+      this.r1.on("mousedown", e => {
+        this.mode = "drawing"
+        this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
+      })
+
+      // update the rubber rect on mouse move - note use of 'mode' var to avoid drawing after mouse released.
+      this.r1.on("mousemove", e => { 
+        if (this.mode === "drawing"){
+          this.updateDrag({x: e.evt.layerX, y: e.evt.layerY})
+        }
+      })
+
+      // here we create the new rect using the location and dimensions of the drawing rect.
+      this.r1.on("mouseup", () => { 
+        this.mode = '';
+        this.rect.visible(false);
+        var newRect = new Konva.Rect({
+          x: this.rect.x(),
+          y: this.rect.y(),
+          width: this.rect.width(),
+          height: this.rect.height(),
+          stroke: this.$store.state.strokeColor,
+          strokeWidth: this.$store.state.strokeWidth,
+          // listening: false,
+          draggable: true
+        })
+        this.layer.add(newRect);
+        this.canvas.draw();
+
+        // eslint-disable-next-line no-console
+        console.log("mouseup")
+
+        this.addHistory()
+
+        // undo / redo 시 해당 rect 객체를 찾기 위해 id 부여
+        newRect.id(String(newRect._id))
+        this.$store.commit("pushRect", {id: String(newRect._id), attrs: newRect.attrs, hidden: "F"})
+      })
+
+      this.layer.on("dragstart", e => {
+        // eslint-disable-next-line no-console
+        console.log("dragstart")
+        // eslint-disable-next-line no-console
+        console.log(e)
+      })
+
+      this.layer.on("dragend", e => {
+        // eslint-disable-next-line no-console
+        console.log("dragend")
+        // eslint-disable-next-line no-console
+        console.log(e.target.className)
+        // this.$store.commit("searchUpdate", {type: e.target.className.toLowerCase(), id: e.target._id, attrs: e.target.attrs})
+      })
+    },
+
+    startDrag (posIn) {
+      this.posStart = {x: posIn.x, y: posIn.y}
+      this.posNow = {x: posIn.x, y: posIn.y}
+    },
+
+    updateDrag (posIn) {
+      // update rubber rect position
+      this.posNow = {x: posIn.x, y: posIn.y};
+      const posRect = this.reverseRect(this.posStart, this.posNow);
+      this.rect.x(posRect.x1);
+      this.rect.y(posRect.y1);
+      this.rect.width(posRect.x2 - posRect.x1);
+      this.rect.height(posRect.y2 - posRect.y1);
+      this.rect.visible(true);  
+      
+      this.canvas.draw(); // redraw any changes.
+    },
+
+    // reverse co-ords if user drags left / up
+    reverseRect (r1, r2){
+      let r1x = r1.x
+      let r1y = r1.y
+      let r2x = r2.x
+      let r2y = r2.y
+      let d = null;
+
+      if (r1x > r2x ){
+        d = Math.abs(r1x - r2x);
+        r1x = r2x; r2x = r1x + d;
+      }
+      if (r1y > r2y ){
+        d = Math.abs(r1y - r2y);
+        r1y = r2y; r2y = r1y + d;
+      }
+      return ({x1: r1x, y1: r1y, x2: r2x, y2: r2y}); // return the corrected rect.     
+    },
+
+    addHistory () {
+      // this.$store.state.history.push({drawType: this.drawType, hidden: "F"})
+      this.$store.commit("addHistory", {drawType: this.drawType, hidden: "F"})
+    },
+
+    undoHistory () {
+      // eslint-disable-next-line no-console
+      console.log("undoHistory")
+      // undo할 shape 의 id를 찾아서 id를 받아옴
+      const undoId = this.$store.getters.getUndoHis
+      // 받아온 id로 history를 찾아서 hidden을 "T" 로 변경
+      this.$store.commit("undoHistory", undoId)
+
+      // canvas 에서 undo id를 검색해서 shape을 찾음
+      const undoShape = this.canvas.find(`#${undoId}`)
+      // 찾은 shape의 visible 값을 "false" 로 변경
+      undoShape.visible(false)
+      this.canvas.draw(); // redraw any changes.
+    },
+
+    redoHistory () {
+      // eslint-disable-next-line no-console
+      console.log("redoHistory")
+      // redo할 shape 의 id를 찾아서 id를 받아옴
+      const redoId = this.$store.getters.getRedoHis
+      // 받아온 id로 history를 찾아서 hidden을 "T" 로 변경
+      this.$store.commit("redoHistory", redoId)
+
+      // canvas 에서 redo id를 검색해서 shape을 찾음
+      const redoShape = this.canvas.find(`#${redoId}`)
+      // 찾은 shape의 visible 값을 "false" 로 변경
+      redoShape.visible(true)
+      this.canvas.draw(); // redraw any changes.
     },
 
     // mouseMove () {
@@ -623,6 +764,9 @@ export default {
     canvas: null,
     layer: null,
     r1: null,
+    posStart: null,
+    posNow: null,
+    mode: "",
     drawType: null,
     angle: {
       path: null,
