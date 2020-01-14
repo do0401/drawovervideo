@@ -63,6 +63,13 @@ export default {
       })
       this.layer.add(this.r1)
 
+      // draw a line to be used as the rubber area
+      this.line = new Konva.Line({
+        points: [],
+        stroke: this.$store.state.strokeColor,
+        dash: [2, 2],
+        id: "lineRubberArea"
+      })
       // draw a rectangle to be used as the rubber area
       this.rect = new Konva.Rect({
         x: 0,
@@ -73,7 +80,7 @@ export default {
         dash: [2, 2],
         id: "rectRubberArea"
       })
-
+      // draw a circle to be used as the rubber area
       this.circle = new Konva.Ellipse({
         x: 0,
         y: 0,
@@ -83,10 +90,11 @@ export default {
         dash: [2, 2],
         id: "circleRubberArea"
       })
-
+      this.line.listening(false)
       this.rect.listening(false)
       this.circle.listening(false)
       
+      this.layer.add(this.line)
       this.layer.add(this.rect)
       this.layer.add(this.circle)
 
@@ -128,6 +136,16 @@ export default {
         } else if (this.drawType === "circle") {
           this.mode = "drawing"
           this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
+        } else if (this.drawType === "free") {
+          this.mode = "drawing"
+          let pos = this.canvas.getPointerPosition()
+          this.free = new Konva.Line({
+            points: [pos.x, pos.y],
+            stroke: this.$store.state.strokeColor,
+            strokeWidth: this.$store.state.strokeWidth,
+            draggable: true
+          })
+          this.layer.add(this.free)
         }
       })
 
@@ -137,11 +155,18 @@ export default {
           this.updateDrag({x: e.evt.layerX, y: e.evt.layerY})
         } else if (this.drawType === "circle" && this.mode === "drawing") {
           this.updateDrag({x: e.evt.layerX, y: e.evt.layerY})
+        } else if (this.drawType === "line" && this.mode === "drawing") {
+          this.updateDrag({x: e.evt.layerX, y: e.evt.layerY})
+        } else if (this.drawType === "free" && this.mode === "drawing") {
+          const pos = this.canvas.getPointerPosition()
+          const newPoints = this.free.points().concat([pos.x, pos.y])
+          this.free.points(newPoints)
+          this.layer.batchDraw()
         }
       })
 
       // here we create the new rect using the location and dimensions of the drawing rect.
-      this.r1.on("mouseup", () => { 
+      this.r1.on("mouseup", e => { 
         // eslint-disable-next-line no-console
         console.log("mouseup")
         let shapeId = null
@@ -176,11 +201,48 @@ export default {
             draggable: true
           })
           this.layer.add(newCircle)
-          // undo / redo 시 해당 rect 객체를 찾기 위해 id 부여
+          // undo / redo 시 해당 circle 객체를 찾기 위해 id 부여
           newCircle.id(String(newCircle._id))
           shapeId = String(newCircle._id)
+        } else if (this.drawType === "line") {
+          if (e.evt.which === 1) {
+            this.mode = "drawing"
+            this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
+            if (this.temp.line === null) {
+              // eslint-disable-next-line no-console
+              console.log(this.line.points())
+              this.temp.line = new Konva.Line({
+                points: [this.posStart.x, this.posStart.y, this.posNow.x, this.posNow.y],
+                stroke: this.$store.state.strokeColor,
+                strokeWidth: this.$store.state.strokeWidth,
+                // listening: false,
+                draggable: false
+              })
+              this.layer.add(this.temp.line)
+            } else if (this.temp.line !== null) {
+              const newPoints = this.temp.line.points().concat([this.posNow.x, this.posNow.y])
+              this.temp.line.points(newPoints)
+              this.layer.batchDraw()
+            }
+          } else if (e.evt.which === 3) {
+            // 우클릭 이벤트
+            // eslint-disable-next-line no-console
+            console.log("right mouseup")
+            this.mode = ""
+            this.line.visible(false)
+            this.temp.line.draggable(true)
+            // undo / redo 시 해당 line 객체를 찾기 위해 id 부여
+            this.temp.line.id(String(this.temp.line._id))
+            shapeId = String(this.temp.line._id)
+            this.temp.line = null
+          }
+        } else if (this.drawType === "free") {
+          this.mode = ''
+          // undo / redo 시 해당 free 객체를 찾기 위해 id 부여
+          this.free.id(String(this.free._id))
+          shapeId = String(this.free._id)
         }
-        this.canvas.draw();
+        this.canvas.draw()
         this.addHistory(shapeId)
       })
 
@@ -189,6 +251,7 @@ export default {
         console.log("dragstart")
         // eslint-disable-next-line no-console
         console.log(e)
+        this.drag = "T"
       })
 
       this.layer.on("dragend", e => {
@@ -196,6 +259,11 @@ export default {
         console.log("dragend")
         // eslint-disable-next-line no-console
         console.log(e.target.className)
+        this.drag = "F"
+      })
+
+      this.layer.on("contextmenu", e => {
+        e.evt.preventDefault()
       })
     },
 
@@ -222,6 +290,10 @@ export default {
         this.circle.radiusX(posCircle.x2 - posCircle.x1);
         this.circle.radiusY(posCircle.y2 - posCircle.y1);
         this.circle.visible(true); 
+      } else if (this.drawType === "line") {
+        // update rubber line position
+        this.line.points([this.posStart.x, this.posStart.y, this.posNow.x, this.posNow.y])
+        this.line.visible(true); 
       }
       
       this.canvas.draw(); // redraw any changes.
@@ -845,6 +917,7 @@ export default {
     posStart: null,
     posNow: null,
     mode: "",
+    drag: "F",
     drawType: null,
     angle: {
       path: null,
