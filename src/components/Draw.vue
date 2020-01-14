@@ -11,7 +11,7 @@
           <v-btn class="pause btn" color="#37474F" @click="pause" dark small>Stop</v-btn>
           <v-icon class="undo btn" color="#37474F" @click="undoHistory">mdi-undo</v-icon>
           <v-icon class="redo btn" color="#37474F" @click="redoHistory">mdi-redo</v-icon>
-          <!-- <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn> -->
+          <v-btn class="clear btn" color="#c0392b" @click="removeDrawing" dark small>Clear</v-btn>
           <div id="output"></div>
           <div id="outputAngle"></div>
           <!-- <v-radio-group class="radioGroup" v-model="drawType" row @change="drawInit"> -->
@@ -58,7 +58,8 @@ export default {
       this.r1 = new Konva.Rect({
         width: w,
         height: h,
-        fill: "gold"
+        fill: "gold",
+        id: "eventArea"
       })
       this.layer.add(this.r1)
 
@@ -69,7 +70,8 @@ export default {
         width: 0,
         height: 0,
         stroke: this.$store.state.strokeColor,
-        dash: [2, 2]
+        dash: [2, 2],
+        id: "rubberArea"
       })
 
       this.rect.listening(false)
@@ -107,42 +109,45 @@ export default {
     draw () {
       // start the rubber drawing on mouse down.
       this.r1.on("mousedown", e => {
-        this.mode = "drawing"
-        this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
+        if (this.drawType === "rect") {
+          this.mode = "drawing"
+          this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
+        }
       })
 
       // update the rubber rect on mouse move - note use of 'mode' var to avoid drawing after mouse released.
       this.r1.on("mousemove", e => { 
-        if (this.mode === "drawing"){
+        if (this.drawType === "rect" && this.mode === "drawing"){
           this.updateDrag({x: e.evt.layerX, y: e.evt.layerY})
         }
       })
 
       // here we create the new rect using the location and dimensions of the drawing rect.
       this.r1.on("mouseup", () => { 
-        this.mode = '';
-        this.rect.visible(false);
-        var newRect = new Konva.Rect({
-          x: this.rect.x(),
-          y: this.rect.y(),
-          width: this.rect.width(),
-          height: this.rect.height(),
-          stroke: this.$store.state.strokeColor,
-          strokeWidth: this.$store.state.strokeWidth,
-          // listening: false,
-          draggable: true
-        })
-        this.layer.add(newRect);
-        this.canvas.draw();
-
         // eslint-disable-next-line no-console
         console.log("mouseup")
-
-        this.addHistory()
-
-        // undo / redo 시 해당 rect 객체를 찾기 위해 id 부여
-        newRect.id(String(newRect._id))
-        this.$store.commit("pushRect", {id: String(newRect._id), attrs: newRect.attrs, hidden: "F"})
+        let shapeId = null
+        if (this.drawType === "rect") {
+          this.mode = '';
+          this.rect.visible(false);
+          var newRect = new Konva.Rect({
+            x: this.rect.x(),
+            y: this.rect.y(),
+            width: this.rect.width(),
+            height: this.rect.height(),
+            stroke: this.$store.state.strokeColor,
+            strokeWidth: this.$store.state.strokeWidth,
+            // listening: false,
+            draggable: true
+          })
+          this.layer.add(newRect);
+          // undo / redo 시 해당 rect 객체를 찾기 위해 id 부여
+          newRect.id(String(newRect._id))
+          shapeId = String(newRect._id)
+          this.$store.commit("pushRect", {id: String(newRect._id), attrs: newRect.attrs, hidden: "F"})
+        }
+        this.canvas.draw();
+        this.addHistory(shapeId)
       })
 
       this.layer.on("dragstart", e => {
@@ -198,16 +203,27 @@ export default {
       return ({x1: r1x, y1: r1y, x2: r2x, y2: r2y}); // return the corrected rect.     
     },
 
-    addHistory () {
+    addHistory (id) {
       // this.$store.state.history.push({drawType: this.drawType, hidden: "F"})
-      this.$store.commit("addHistory", {drawType: this.drawType, hidden: "F"})
+      this.$store.commit("addHistory", {drawType: this.drawType, id, hidden: "F"})
     },
 
     undoHistory () {
       // eslint-disable-next-line no-console
       console.log("undoHistory")
+
+      // history array
+      const historyArray = this.$store.state.history
+
       // undo할 shape 의 id를 찾아서 id를 받아옴
-      const undoId = this.$store.getters.getUndoHis
+      let undoId = null
+      historyArray.reverse().some(entry => {
+        if (entry.hidden === "F") {
+          historyArray.reverse()
+          undoId = entry.id
+          return true
+        }
+      })
       // 받아온 id로 history를 찾아서 hidden을 "T" 로 변경
       this.$store.commit("undoHistory", undoId)
 
@@ -221,8 +237,18 @@ export default {
     redoHistory () {
       // eslint-disable-next-line no-console
       console.log("redoHistory")
+      
+      // history array
+      const historyArray = this.$store.state.history
+
       // redo할 shape 의 id를 찾아서 id를 받아옴
-      const redoId = this.$store.getters.getRedoHis
+      let redoId = null
+      historyArray.some(entry => {
+        if (entry.hidden === "T") {
+          redoId = entry.id
+          return true
+        }
+      })
       // 받아온 id로 history를 찾아서 hidden을 "T" 로 변경
       this.$store.commit("redoHistory", redoId)
 
@@ -231,6 +257,15 @@ export default {
       // 찾은 shape의 visible 값을 "false" 로 변경
       redoShape.visible(true)
       this.canvas.draw(); // redraw any changes.
+    },
+
+    removeDrawing () {
+      // layer 의 chlildren 삭제
+      this.layer.destroyChildren()
+      this.resizeCanvas()
+      // this.$store.commit("initStorage")
+
+      // this.drawInit()
     },
 
     // mouseMove () {

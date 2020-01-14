@@ -35,120 +35,6 @@ export const store = new Vuex.Store({
     },
     strokeColor: function (state) {
       return state.strokeColor
-    },
-    getUndoHis: function (state) {
-      let undoId = null
-      state.history.reverse().some(entry => {
-        if (entry.hidden === "F") {
-          state.history.reverse()
-          switch (entry.drawType) {
-            case "line":
-              state.storage.line.reverse().some(lineEntry => {
-                if (lineEntry.hidden === "F") {
-                  state.storage.line.reverse()
-                  undoId = lineEntry.id
-                  return true
-                }
-              })
-              break;
-            case "rect":  {
-              state.storage.rect.reverse().some(rectEntry => {
-                if (rectEntry.hidden === "F") {
-                  state.storage.rect.reverse()
-                  undoId = rectEntry.id
-                  return true
-                }
-              })
-              break;
-            }
-            case "circle":
-              state.storage.circle.reverse().some(circleEntry => {
-                if (circleEntry.hidden === "F") {
-                  state.storage.circle.reverse()
-                  undoId = circleEntry.id
-                  return true
-                }
-              })
-              break;
-            case "angle":
-              state.storage.angle.reverse().some(angleEntry => {
-                if (angleEntry.hidden === "F") {
-                  state.storage.angle.reverse()
-                  undoId = angleEntry.id
-                  return true
-                }
-              })
-              break;
-            case "free":
-              state.storage.free.reverse().some(freeEntry => {
-                if (freeEntry.hidden === "F") {
-                  state.storage.free.reverse()
-                  undoId = freeEntry.id
-                  return true
-                }
-              })
-              break;
-            default:
-              break;
-          }
-          return true
-        }
-      })
-      return undoId
-    },
-    getRedoHis: function (state) {
-      let redoId = null
-      state.history.some(entry => {
-        if (entry.hidden === "T") {
-          switch (entry.drawType) {
-            case "line":
-              state.storage.line.some(lineEntry => {
-                if (lineEntry.hidden === "T") {
-                  redoId = lineEntry.id
-                  return true
-                }
-              })
-              break;
-            case "rect":  {
-              state.storage.rect.some(rectEntry => {
-                if (rectEntry.hidden === "T") {
-                  redoId = rectEntry.id
-                  return true
-                }
-              })
-              break;
-            }
-            case "circle":
-              state.storage.circle.some(circleEntry => {
-                if (circleEntry.hidden === "T") {
-                  redoId = circleEntry.id
-                  return true
-                }
-              })
-              break;
-            case "angle":
-              state.storage.angle.some(angleEntry => {
-                if (angleEntry.hidden === "T") {
-                  redoId = angleEntry.id
-                  return true
-                }
-              })
-              break;
-            case "free":
-              state.storage.free.some(freeEntry => {
-                if (freeEntry.hidden === "T") {
-                  redoId = freeEntry.id
-                  return true
-                }
-              })
-              break;
-            default:
-              break;
-          }
-          return true
-        }
-      })
-      return redoId
     }
   },
 
@@ -240,89 +126,17 @@ export const store = new Vuex.Store({
     },
 
     undoHistory: (state, payload) => {
-      state.history.some(entry => {
-        if (entry.hidden === "F") {
-          entry.hidden = "T"
-          switch (entry.drawType) {
-            case "line": {
-              // 찾아낸 마지막 line history id(payload)를 storage 에서 찾아서 hidden을 "T" 로 변경
-              const r = state.storage.line.find(entry => entry.id === payload)
-              r.hidden = "T"
-              break;
-            }
-            case "rect":  {
-              // 찾아낸 마지막 rect history id(payload)를 storage 에서 찾아서 hidden을 "T" 로 변경
-              const r = state.storage.rect.find(entry => entry.id === payload)
-              r.hidden = "T"
-              break;
-            }
-            case "circle": {
-              // 찾아낸 마지막 circle history id(payload)를 storage 에서 찾아서 hidden을 "T" 로 변경
-              const r = state.storage.circle.find(entry => entry.id === payload)
-              r.hidden = "T"
-              break;
-            }
-            case "angle": {
-              // 찾아낸 마지막 circle history id(payload)를 storage 에서 찾아서 hidden을 "T" 로 변경
-              const r = state.storage.angle.find(entry => entry.id === payload)
-              r.hidden = "T"
-              break;
-            }
-            case "free":{
-              // 찾아낸 마지막 free history id(payload)를 storage 에서 찾아서 hidden을 "T" 로 변경
-              const r = state.storage.free.find(entry => entry.id === payload)
-              r.hidden = "T"
-              break;
-            }
-            default:
-              break;
-          }
-          return true
-        }
-      })
+      const r = state.history.find(entry => entry.id === payload)
+      if (r) {
+        r.hidden = "T"
+      }
     },
 
     redoHistory: (state, payload) => {
-      state.history.some(entry => {
-        if (entry.hidden === "T") {
-          entry.hidden = "F"
-          switch (entry.drawType) {
-            case "line": {
-              // 찾아낸 마지막 line history id(payload)를 storage 에서 찾아서 hidden을 "T" 로 변경
-              const r = state.storage.line.find(entry => entry.id === payload)
-              r.hidden = "F"
-              break;
-            }
-            case "rect":  {
-              // 찾아낸 마지막 rect history id(payload)를 storage 에서 찾아서 hidden을 "T" 로 변경
-              const r = state.storage.rect.find(entry => entry.id === payload)
-              r.hidden = "F"
-              break;
-            }
-            case "circle": {
-              // 찾아낸 마지막 circle history id(payload)를 storage 에서 찾아서 hidden을 "T" 로 변경
-              const r = state.storage.circle.find(entry => entry.id === payload)
-              r.hidden = "F"
-              break;
-            }
-            case "angle": {
-              // 찾아낸 마지막 circle history id(payload)를 storage 에서 찾아서 hidden을 "T" 로 변경
-              const r = state.storage.angle.find(entry => entry.id === payload)
-              r.hidden = "F"
-              break;
-            }
-            case "free":{
-              // 찾아낸 마지막 free history id(payload)를 storage 에서 찾아서 hidden을 "T" 로 변경
-              const r = state.storage.free.find(entry => entry.id === payload)
-              r.hidden = "F"
-              break;
-            }
-            default:
-              break;
-          }
-          return true
-        }
-      })
+      const r = state.history.find(entry => entry.id === payload)
+      if (r) {
+        r.hidden = "F"
+      }
     }
   }
 })
