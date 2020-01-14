@@ -71,11 +71,24 @@ export default {
         height: 0,
         stroke: this.$store.state.strokeColor,
         dash: [2, 2],
-        id: "rubberArea"
+        id: "rectRubberArea"
+      })
+
+      this.circle = new Konva.Ellipse({
+        x: 0,
+        y: 0,
+        radiusX: 0,
+        radiusY: 0,
+        stroke: this.$store.state.strokeColor,
+        dash: [2, 2],
+        id: "circleRubberArea"
       })
 
       this.rect.listening(false)
+      this.circle.listening(false)
+      
       this.layer.add(this.rect)
+      this.layer.add(this.circle)
 
       this.canvas.draw()
     },
@@ -112,12 +125,17 @@ export default {
         if (this.drawType === "rect") {
           this.mode = "drawing"
           this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
+        } else if (this.drawType === "circle") {
+          this.mode = "drawing"
+          this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
         }
       })
 
       // update the rubber rect on mouse move - note use of 'mode' var to avoid drawing after mouse released.
       this.r1.on("mousemove", e => { 
         if (this.drawType === "rect" && this.mode === "drawing"){
+          this.updateDrag({x: e.evt.layerX, y: e.evt.layerY})
+        } else if (this.drawType === "circle" && this.mode === "drawing") {
           this.updateDrag({x: e.evt.layerX, y: e.evt.layerY})
         }
       })
@@ -128,9 +146,9 @@ export default {
         console.log("mouseup")
         let shapeId = null
         if (this.drawType === "rect") {
-          this.mode = '';
-          this.rect.visible(false);
-          var newRect = new Konva.Rect({
+          this.mode = ''
+          this.rect.visible(false)
+          const newRect = new Konva.Rect({
             x: this.rect.x(),
             y: this.rect.y(),
             width: this.rect.width(),
@@ -140,11 +158,27 @@ export default {
             // listening: false,
             draggable: true
           })
-          this.layer.add(newRect);
+          this.layer.add(newRect)
           // undo / redo 시 해당 rect 객체를 찾기 위해 id 부여
           newRect.id(String(newRect._id))
           shapeId = String(newRect._id)
-          this.$store.commit("pushRect", {id: String(newRect._id), attrs: newRect.attrs, hidden: "F"})
+        } else if (this.drawType === "circle") {
+          this.mode = ''
+          this.circle.visible(false)
+          const newCircle = new Konva.Ellipse({
+            x: this.circle.x(),
+            y: this.circle.y(),
+            radiusX: this.circle.radiusX(),
+            radiusY: this.circle.radiusY(),
+            stroke: this.$store.state.strokeColor,
+            strokeWidth: this.$store.state.strokeWidth,
+            // listening: false,
+            draggable: true
+          })
+          this.layer.add(newCircle)
+          // undo / redo 시 해당 rect 객체를 찾기 위해 id 부여
+          newCircle.id(String(newCircle._id))
+          shapeId = String(newCircle._id)
         }
         this.canvas.draw();
         this.addHistory(shapeId)
@@ -162,7 +196,6 @@ export default {
         console.log("dragend")
         // eslint-disable-next-line no-console
         console.log(e.target.className)
-        // this.$store.commit("searchUpdate", {type: e.target.className.toLowerCase(), id: e.target._id, attrs: e.target.attrs})
       })
     },
 
@@ -172,14 +205,24 @@ export default {
     },
 
     updateDrag (posIn) {
-      // update rubber rect position
       this.posNow = {x: posIn.x, y: posIn.y};
-      const posRect = this.reverseRect(this.posStart, this.posNow);
-      this.rect.x(posRect.x1);
-      this.rect.y(posRect.y1);
-      this.rect.width(posRect.x2 - posRect.x1);
-      this.rect.height(posRect.y2 - posRect.y1);
-      this.rect.visible(true);  
+      if (this.drawType === "rect") {
+        // update rubber rect position
+        const posRect = this.reverseRect(this.posStart, this.posNow);
+        this.rect.x(posRect.x1);
+        this.rect.y(posRect.y1);
+        this.rect.width(posRect.x2 - posRect.x1);
+        this.rect.height(posRect.y2 - posRect.y1);
+        this.rect.visible(true);  
+      } else if (this.drawType === "circle") {
+        // update rubber circle position
+        const posCircle = this.reverseRect(this.posStart, this.posNow);
+        this.circle.x(posCircle.x1);
+        this.circle.y(posCircle.y1);
+        this.circle.radiusX(posCircle.x2 - posCircle.x1);
+        this.circle.radiusY(posCircle.y2 - posCircle.y1);
+        this.circle.visible(true); 
+      }
       
       this.canvas.draw(); // redraw any changes.
     },
