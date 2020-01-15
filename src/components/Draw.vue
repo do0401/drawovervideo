@@ -405,6 +405,7 @@ export default {
 								this.temp.angle.line = null
 								this.temp.angle.group = null
 								this.temp.angle.arc = null
+								this.temp.angle.text = null
 							}
 						}
 					}
@@ -575,9 +576,6 @@ export default {
 			// layer 의 chlildren 삭제
 			this.layer.destroyChildren()
 			this.resizeCanvas()
-			// this.$store.commit("initStorage")
-
-			// this.drawInit()
 		},
 
 		removeOne() {
@@ -683,15 +681,12 @@ export default {
 		angle: null,
 		temp: {
 			line: null,
-			rect: null,
-			circle: null,
 			angle: {
 				group: null,
 				line: null,
 				arc: null,
 				text: null,
 			},
-			free: [],
 		},
 		selected: null,
 	}),
