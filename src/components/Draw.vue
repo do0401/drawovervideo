@@ -58,7 +58,6 @@ export default {
       this.r1 = new Konva.Rect({
         width: w,
         height: h,
-        fill: "gold",
         id: "eventArea"
       })
       this.layer.add(this.r1)
@@ -90,10 +89,19 @@ export default {
         dash: [2, 2],
         id: "circleRubberArea"
       })
+      // draw a angle to be used as the rubber area
+      this.angle = new Konva.Line({
+        points: [],
+        stroke: this.$store.state.strokeColor,
+        dash: [2, 2],
+        id: "angleRubberArea"
+      })
+      this.angle.listening(false)
       this.line.listening(false)
       this.rect.listening(false)
       this.circle.listening(false)
       
+      this.layer.add(this.angle)
       this.layer.add(this.line)
       this.layer.add(this.rect)
       this.layer.add(this.circle)
@@ -112,7 +120,20 @@ export default {
       this.setStage(w, h)
 
       this.draw()
-      // this.mouseMove()
+      this.mouseMove()
+    },
+
+    mouseMove () {
+      const output = document.getElementById("output")
+
+      this.r1.on("mousemove", e => {
+        let canvasx = this.r1.x()
+        let canvasy = this.r1.y()
+        let mousex = parseInt(e.evt.clientX - canvasx)
+        let mousey = parseInt(e.evt.clientY - canvasy)
+
+        output.innerHTML = "location: "+mousex+", "+mousey
+      })
     },
 
     play () {
@@ -142,8 +163,7 @@ export default {
           this.free = new Konva.Line({
             points: [pos.x, pos.y],
             stroke: this.$store.state.strokeColor,
-            strokeWidth: this.$store.state.strokeWidth,
-            draggable: true
+            strokeWidth: this.$store.state.strokeWidth
           })
           this.layer.add(this.free)
         }
@@ -157,11 +177,16 @@ export default {
           this.updateDrag({x: e.evt.layerX, y: e.evt.layerY})
         } else if (this.drawType === "line" && this.mode === "drawing") {
           this.updateDrag({x: e.evt.layerX, y: e.evt.layerY})
-        } else if (this.drawType === "free" && this.mode === "drawing") {
-          const pos = this.canvas.getPointerPosition()
-          const newPoints = this.free.points().concat([pos.x, pos.y])
-          this.free.points(newPoints)
-          this.layer.batchDraw()
+        } else if (this.drawType === "free") {
+          if (this.mode === "drawing") {
+            if (this.mode !== "drawing") return
+            const pos = this.canvas.getPointerPosition()
+            const newPoints = this.free.points().concat([pos.x, pos.y])
+            this.free.points(newPoints)
+            this.layer.batchDraw()
+          }
+        } else if (this.drawType === "angle" && this.mode === "drawing") {
+          this.updateDrag({x: e.evt.layerX, y: e.evt.layerY})
         }
       })
 
@@ -209,8 +234,6 @@ export default {
             this.mode = "drawing"
             this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
             if (this.temp.line === null) {
-              // eslint-disable-next-line no-console
-              console.log(this.line.points())
               this.temp.line = new Konva.Line({
                 points: [this.posStart.x, this.posStart.y, this.posNow.x, this.posNow.y],
                 stroke: this.$store.state.strokeColor,
@@ -237,10 +260,46 @@ export default {
             this.temp.line = null
           }
         } else if (this.drawType === "free") {
-          this.mode = ''
+          this.mode = ""
           // undo / redo 시 해당 free 객체를 찾기 위해 id 부여
           this.free.id(String(this.free._id))
+          this.free.draggable(true)
           shapeId = String(this.free._id)
+          this.free = null
+        } else if (this.drawType === "angle") {
+          if (e.evt.which === 1) {
+            this.mode = "drawing"
+            this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
+            if (this.temp.angle.line === null) {
+              this.temp.angle.group = new Konva.Group({
+                draggable: true
+              })
+              this.temp.angle.line = new Konva.Line({
+                points: [this.posNow.x, this.posNow.y],
+                stroke: this.$store.state.strokeColor,
+                strokeWidth: this.$store.state.strokeWidth,
+              })
+              // 각도 line과 각 표시 arc를 드래그 시 같이 이동시키기 위해 group에 넣어준다.
+              this.temp.angle.group.add(this.temp.angle.line)
+              this.layer.add(this.temp.angle.group)
+            } else if (this.temp.angle.line !== null && this.temp.angle.line.points().length < 7) {
+              const newPoints = this.temp.angle.line.points().concat([this.posNow.x, this.posNow.y])
+              this.temp.angle.line.points(newPoints)
+              this.layer.batchDraw()
+              if (this.temp.angle.line.points().length === 6) {
+                this.mode = ''
+                this.angle.visible(false)
+                // 각도 계산
+                const angle = this.calAngle(this.temp.angle.line.points())
+                // 각도 표시를 위한 함수
+                this.drawAngleArc(angle, this.temp.angle.line.points())
+
+                const output = document.getElementById("outputAngle")
+                output.innerHTML = "angle: "+angle
+                this.temp.angle.line = null
+              }
+            }
+          }
         }
         this.canvas.draw()
         this.addHistory(shapeId)
@@ -276,7 +335,7 @@ export default {
       this.posNow = {x: posIn.x, y: posIn.y};
       if (this.drawType === "rect") {
         // update rubber rect position
-        const posRect = this.reverseRect(this.posStart, this.posNow);
+        const posRect = this.reverse(this.posStart, this.posNow);
         this.rect.x(posRect.x1);
         this.rect.y(posRect.y1);
         this.rect.width(posRect.x2 - posRect.x1);
@@ -284,7 +343,7 @@ export default {
         this.rect.visible(true);  
       } else if (this.drawType === "circle") {
         // update rubber circle position
-        const posCircle = this.reverseRect(this.posStart, this.posNow);
+        const posCircle = this.reverse(this.posStart, this.posNow);
         this.circle.x(posCircle.x1);
         this.circle.y(posCircle.y1);
         this.circle.radiusX(posCircle.x2 - posCircle.x1);
@@ -294,13 +353,17 @@ export default {
         // update rubber line position
         this.line.points([this.posStart.x, this.posStart.y, this.posNow.x, this.posNow.y])
         this.line.visible(true); 
+      } else if (this.drawType === "angle") {
+        // update rubber line position
+        this.angle.points([this.posStart.x, this.posStart.y, this.posNow.x, this.posNow.y])
+        this.angle.visible(true);
       }
       
       this.canvas.draw(); // redraw any changes.
     },
 
     // reverse co-ords if user drags left / up
-    reverseRect (r1, r2){
+    reverse (r1, r2){
       let r1x = r1.x
       let r1y = r1.y
       let r2x = r2.x
@@ -383,19 +446,60 @@ export default {
       // this.drawInit()
     },
 
-    // mouseMove () {
-    //   const canvas = document.getElementById("canvas")
-    //   const output = document.getElementById("output")
+    calAngle (points) {
+      // 각도 계산 함수
+      const ab = Math.sqrt(Math.pow(points[2] - points[0], 2) + Math.pow(points[3] - points[1], 2))
+      const bc = Math.sqrt(Math.pow(points[2] - points[4], 2) + Math.pow(points[3] - points[5], 2))
+      const ac = Math.sqrt(Math.pow(points[4] - points[0], 2) + Math.pow(points[5] - points[1], 2))
 
-    //   this.canvas.on("mousemove", e => {
-    //     let canvasx = canvas.offsetLeft
-    //     let canvasy = canvas.offsetTop
-    //     let mousex = parseInt(e.evt.clientX - canvasx)
-    //     let mousey = parseInt(e.evt.clientY - canvasy)
+      const angle = (Math.acos((bc * bc + ab * ab - ac * ac) / (2 * bc * ab)) * 180) / Math.PI
 
-    //     output.innerHTML = "location: "+mousex+", "+mousey
-    //   })
-    // },
+      return angle
+    },
+
+    drawAngleArc (angle, anglePath) {
+      const p1 = [anglePath[0], anglePath[1]]
+      const p2 = [anglePath[2], anglePath[3]]
+      const p3 = [anglePath[4], anglePath[5]]
+      // 각 라인 각도
+      const angle1 = Math.atan2(p1[1] - p2[1], p1[0] - p2[0])*(180/Math.PI)
+      const angle2 = Math.atan2(p3[1] - p2[1], p3[0] - p2[0])*(180/Math.PI)
+
+      // 각 라인 양수 각도
+      const plusAngle1 = angle1 > 0 ? angle1 : angle1 + 360
+      const plusAngle2 = angle2 > 0 ? angle2 : angle2 + 360
+
+      // 각 라인 양수 각도 크기 판별
+      const smallAngle = plusAngle1 > plusAngle2 ? plusAngle2 : plusAngle1
+      const largeAngle = plusAngle1 > plusAngle2 ? plusAngle1 : plusAngle2
+
+      let rotateAngle = null
+
+      if (largeAngle - smallAngle > 180) {
+        rotateAngle = largeAngle
+      } else {
+        rotateAngle = smallAngle
+      }
+
+      // 평각 이상의 각도에 arc가 그려지는 것에 대한 예외 처리
+      this.temp.angle.arc = new Konva.Arc({
+        x: p2[0],
+        y: p2[1],
+        innerRadius: 20,
+        outerRadius: 20,
+        angle,
+        rotation: rotateAngle,
+        stroke: this.$store.state.strokeColor,
+        strokeWidth: this.$store.state.strokeWidth
+      })
+      this.temp.angle.group.add(this.temp.angle.arc)
+      this.layer.add(this.temp.angle.group)
+      this.canvas.add(this.layer)
+      this.canvas.draw()
+
+      this.temp.angle.group = null
+      this.temp.angle.arc = null
+    },
 
     // drawInit () {
     //   this.angle.path = null
@@ -919,21 +1023,22 @@ export default {
     mode: "",
     drag: "F",
     drawType: null,
-    angle: {
-      path: null,
-      arc: null,
-      p1: null,
-      p2: null,
-      p3: null
-    },
     line: null,
     rect: null,
     circle: null,
     free: null,
+    angle: null,
+    
+    angleGroup: null,
     temp: {
       line: null,
       rect: null,
       circle: null,
+      angle: {
+        group: null,
+        line: null,
+        arc: null
+      },
       free: []
     }
   })
@@ -983,17 +1088,17 @@ export default {
   #output {
     position: absolute;
     top: -30px;
-    left: 600px;
+    left: 700px;
     font-size: 0.7rem;
-    color: white;
+    color: black;
   }
 
   #outputAngle {
     position: absolute;
-    top: -30px;
-    left: 10px;
+    top: -80px;
+    left: 700px;
     font-size: 0.7rem;
-    color: white;
+    color: black;
   }
 
   .radioGroup {
