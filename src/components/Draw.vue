@@ -76,7 +76,7 @@ export default {
       // draw a line to be used as the rubber area
       this.line = new Konva.Line({
         points: [],
-        stroke: this.$store.state.strokeColor,
+        stroke: this.$store.getters.strokeColor,
         dash: [2, 2],
         id: "rubberArea"
       })
@@ -86,7 +86,7 @@ export default {
         y: 0,
         width: 0,
         height: 0,
-        stroke: this.$store.state.strokeColor,
+        stroke: this.$store.getters.strokeColor,
         dash: [2, 2],
         id: "rubberArea"
       })
@@ -96,14 +96,14 @@ export default {
         y: 0,
         radiusX: 0,
         radiusY: 0,
-        stroke: this.$store.state.strokeColor,
+        stroke: this.$store.getters.strokeColor,
         dash: [2, 2],
         id: "rubberArea"
       })
       // draw a angle to be used as the rubber area
       this.angle = new Konva.Line({
         points: [],
-        stroke: this.$store.state.strokeColor,
+        stroke: this.$store.getters.strokeColor,
         dash: [2, 2],
         id: "rubberArea"
       })
@@ -181,8 +181,8 @@ export default {
           let pos = this.canvas.getPointerPosition()
           this.free = new Konva.Line({
             points: [pos.x, pos.y],
-            stroke: this.$store.state.strokeColor,
-            strokeWidth: this.$store.state.strokeWidth
+            stroke: this.$store.getters.strokeColor,
+            strokeWidth: this.$store.getters.strokeWidth
           })
           this.layer.add(this.free)
         }
@@ -223,9 +223,9 @@ export default {
             y: this.rect.y(),
             width: this.rect.width(),
             height: this.rect.height(),
-            stroke: this.$store.state.strokeColor,
-            strokeWidth: this.$store.state.strokeWidth,
-            dash: this.$store.state.dash,
+            stroke: this.$store.getters.strokeColor,
+            strokeWidth: this.$store.getters.strokeWidth,
+            dash: this.$store.getters.dash,
             // listening: false,
             draggable: true
           })
@@ -242,9 +242,9 @@ export default {
             y: this.circle.y(),
             radiusX: this.circle.radiusX(),
             radiusY: this.circle.radiusY(),
-            stroke: this.$store.state.strokeColor,
-            strokeWidth: this.$store.state.strokeWidth,
-            dash: this.$store.state.dash,
+            stroke: this.$store.getters.strokeColor,
+            strokeWidth: this.$store.getters.strokeWidth,
+            dash: this.$store.getters.dash,
             // listening: false,
             draggable: true
           })
@@ -258,20 +258,20 @@ export default {
             this.mode = "drawing"
             this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
             if (this.temp.line === null) {
-              if (!this.$store.state.arrow) {
+              if (!this.$store.getters.arrow) {
                 this.temp.line = new Konva.Line({
                   points: [this.posStart.x, this.posStart.y, this.posNow.x, this.posNow.y],
-                  stroke: this.$store.state.strokeColor,
-                  strokeWidth: this.$store.state.strokeWidth,
-                  dash: this.$store.state.dash,
+                  stroke: this.$store.getters.strokeColor,
+                  strokeWidth: this.$store.getters.strokeWidth,
+                  dash: this.$store.getters.dash,
                   draggable: false,
                 })
               } else {
                 this.temp.line = new Konva.Arrow({
                   points: [this.posStart.x, this.posStart.y, this.posNow.x, this.posNow.y],
-                  stroke: this.$store.state.strokeColor,
-                  strokeWidth: this.$store.state.strokeWidth,
-                  dash: this.$store.state.dash,
+                  stroke: this.$store.getters.strokeColor,
+                  strokeWidth: this.$store.getters.strokeWidth,
+                  dash: this.$store.getters.dash,
                   // listening: false,
                   draggable: false,
                   // tension: 1,
@@ -307,23 +307,26 @@ export default {
           this.free = null
         // Angle
         } else if (this.drawType === "angle") {
+          // 좌클릭일 때만 그려지도록
           if (e.evt.which === 1) {
             this.mode = "drawing"
             this.startDrag({x: e.evt.layerX, y: e.evt.layerY})
+            // 첫번째 좌표를 찍었을 때
             if (this.temp.angle.line === null) {
               this.temp.angle.group = new Konva.Group({
                 draggable: true
               })
               this.temp.angle.line = new Konva.Line({
                 points: [this.posNow.x, this.posNow.y],
-                stroke: this.$store.state.strokeColor,
-                strokeWidth: this.$store.state.strokeWidth,
-                dash: this.$store.state.dash,
+                stroke: this.$store.getters.strokeColor,
+                strokeWidth: this.$store.getters.strokeWidth,
+                dash: this.$store.getters.dash,
                 id: "angle"
               })
               // 각도 line과 각 표시 arc를 드래그 시 같이 이동시키기 위해 group에 넣어준다.
               this.temp.angle.group.add(this.temp.angle.line)
               this.layer.add(this.temp.angle.group)
+            // 두번째 또는 세번째 좌표를 찍었을 때
             } else if (this.temp.angle.line !== null && this.temp.angle.line.points().length < 7) {
               const newPoints = this.temp.angle.line.points().concat([this.posNow.x, this.posNow.y])
               this.temp.angle.line.points(newPoints)
@@ -335,6 +338,8 @@ export default {
                 const angle = this.calAngle(this.temp.angle.line.points())
                 // 각도 표시를 위한 함수
                 this.drawAngleArc(angle, this.temp.angle.line.points())
+                // 각도 텍스트 표시를 위한 함수
+                this.drawAngleText(this.temp.angle.line.points()[2], this.temp.angle.line.points()[3], angle)
                 // group id 생성 및 shapeId에 group id 삽입
                 this.temp.angle.group.id(String(this.temp.angle.group._id))
                 shapeId = String(this.temp.angle.group._id)
@@ -545,14 +550,29 @@ export default {
         outerRadius: 20,
         angle,
         rotation: rotateAngle,
-        stroke: this.$store.state.strokeColor,
-        strokeWidth: this.$store.state.strokeWidth,
+        stroke: this.$store.state.drawOptions.strokeColor,
+        strokeWidth: this.$store.getters.strokeWidth,
+        dash: this.$store.state.drawOptions.dash,
         id: "angle"
       })
       this.temp.angle.group.add(this.temp.angle.arc)
+    },
+
+    drawAngleText (x, y, angle) {
+      this.temp.angle.text = new Konva.Text({
+        text: `${angle.toFixed(1)}`,
+        x,
+        y,
+        fontSize: 10,
+        fill: this.$store.state.drawOptions.strokeColor,
+        draggable: true
+      })
+      this.temp.angle.group.add(this.temp.angle.text)
       this.canvas.draw()
     }
   },
+
+  
 
   data: () => ({
     canvas: null,
@@ -575,7 +595,8 @@ export default {
       angle: {
         group: null,
         line: null,
-        arc: null
+        arc: null,
+        text: null
       },
       free: []
     },

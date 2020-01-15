@@ -5,6 +5,7 @@ Vue.use(Vuex)
 
 export const store = new Vuex.Store({
   state: {
+    history: [],
     storage: {
       line: [],
       rect: [],
@@ -12,32 +13,27 @@ export const store = new Vuex.Store({
       angle: [],
       free: []
     },
-    history: [],
     drawType: null,
-    strokeColor: '#E62B2B',
-    strokeWidth: 3,
-    dash: [0, 0],
-    arrow: false
+    drawOptions: {
+      strokeColor: '#E62B2B',
+      strokeWidth: 3,
+      dash: [0, 0],
+      arrow: false
+    },
   },
 
   getters: {
-    lineStorage: function (state) {
-      return state.storage.line
-    },
-    rectStorage: function (state) {
-      return state.storage.rect
-    },
-    cirStorage: function (state) {
-      return state.storage.circle
-    },
-    angleStorage: function (state) {
-      return state.storage.angle
-    },
-    freeStorage: function (state) {
-      return state.storage.free
-    },
     strokeColor: function (state) {
-      return state.strokeColor
+      return state.drawOptions.strokeColor
+    },
+    strokeWidth: function (state) {
+      return state.drawOptions.strokeWidth
+    },
+    dash: function (state) {
+      return state.drawOptions.dash
+    },
+    arrow: function (state) {
+      return state.drawOptions.arrow
     }
   },
 

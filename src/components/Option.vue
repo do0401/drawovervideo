@@ -70,7 +70,7 @@
         },
         set (v) {
           this.color = v
-          this.$store.state.strokeColor = v
+          this.$store.state.drawOptions.strokeColor = v
         }
       },
 
@@ -80,7 +80,7 @@
         },
         set (v) {
           this.strokeWidth = v
-          this.$store.state.strokeWidth = v
+          this.$store.state.drawOptions.strokeWidth = v
         }
       },
 
@@ -90,7 +90,7 @@
         },
         set (v) {
           this.strokeDash = v
-          this.$store.state.dash = [v, v]
+          this.$store.state.drawOptions.dash = [v, v]
         }
       },
 
@@ -100,7 +100,7 @@
         },
         set (v) {
           this.arrow = v
-          this.$store.state.arrow = v
+          this.$store.state.drawOptions.arrow = v
         }
       }
     },
