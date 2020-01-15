@@ -53,11 +53,11 @@ export default {
       })
       this.layer = new Konva.Layer({draggable: false})
       this.canvas.add(this.layer)
-
       // draw a background rect to catch events.
       this.r1 = new Konva.Rect({
         width: w,
         height: h,
+        fill: "gold",
         id: "eventArea"
       })
       this.layer.add(this.r1)
@@ -110,23 +110,31 @@ export default {
     },
 
     resizeCanvas () {
-      // eslint-disable-next-line no-console
-      console.log("resizeCanvas mounted")
-      const video = document.getElementById("video")
+      setTimeout(() => {
+        // eslint-disable-next-line no-console
+        console.log("resizeCanvas mounted")
+        const video = document.getElementById("video")
+        let canvas = document.getElementById("canvas")
+  
+        const t = video.offsetTop
+        const l = video.offsetLeft
+        const w = video.offsetWidth
+        const h = video.offsetHeight
+        
+        this.setStage(w, h)
 
-      const w = video.offsetWidth
-      const h = video.offsetHeight
-      
-      this.setStage(w, h)
+        canvas.style.top = t + "px"
+        canvas.style.left = l + "px"
 
-      this.draw()
-      this.mouseMove()
+        this.draw()
+        this.mouseMove()
+      }, 500);
     },
 
     mouseMove () {
       const output = document.getElementById("output")
 
-      this.r1.on("mousemove", e => {
+      this.canvas.on("mousemove", e => {
         let canvasx = this.r1.x()
         let canvasy = this.r1.y()
         let mousex = parseInt(e.evt.clientX - canvasx)
@@ -1055,8 +1063,6 @@ export default {
     width: 700px;
     height: auto;
     position: absolute;
-    top: 0px;
-    left: 0px;
   }
 
   #canvas {
