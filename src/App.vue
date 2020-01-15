@@ -1,6 +1,6 @@
 <template>
-  <v-app>
-    <!-- <v-app-bar
+	<v-app>
+		<!-- <v-app-bar
       app
       color="primary"
       dark
@@ -37,24 +37,24 @@
       </v-btn>
     </v-app-bar> -->
 
-    <v-content>
-      <Draw/>
-    </v-content>
-  </v-app>
+		<v-content>
+			<Draw />
+		</v-content>
+	</v-app>
 </template>
 
 <script>
-import Draw from './components/Draw';
+import Draw from './components/Draw'
 
 export default {
-  name: 'App',
+	name: 'App',
 
-  components: {
-    Draw
-  },
+	components: {
+		Draw,
+	},
 
-  data: () => ({
-    //
-  }),
-};
+	data: () => ({
+		//
+	}),
+}
 </script>
