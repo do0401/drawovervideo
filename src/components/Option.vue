@@ -22,11 +22,10 @@
           <v-spacer></v-spacer>
           <v-color-picker
             v-model="setColor"
-            :hide-canvas="hideCanvas"
-            :hide-inputs="hideInputs"
-            :hide-mode-switch="hideModeSwitch"
-            :mode.sync="mode"
-            :show-swatches="showSwatches"
+            hide-canvas
+            hide-inputs
+            show-swatches
+            swatches-max-height="180px"
           ></v-color-picker>
         </v-container>
       </v-card>

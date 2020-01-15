@@ -26,6 +26,13 @@
         </v-flex>
       </v-container>
     </v-card>
+    <v-card class="toolbar mt-1" max-width="700" height="50" outlined>
+      <v-container>
+        <v-flex xs12>
+          <v-btn class="delete btn" color="#e74c3c" @click="removeOne" dark small>remove one</v-btn>
+        </v-flex>
+      </v-container>
+    </v-card>
     <Option/>
   </v-app>
 </template>
@@ -505,6 +512,20 @@ export default {
       // this.$store.commit("initStorage")
 
       // this.drawInit()
+    },
+
+    removeOne () {
+      if (this.selected) {
+        const selectedId = this.selected.attrs.id
+        const historyArray = this.$store.state.history
+        
+        this.$store.state.history = historyArray.filter(function (item) {
+          return item.id !== selectedId
+        })
+
+        this.selected.remove()
+        this.canvas.draw()
+      }
     },
 
     calAngle (points) {
