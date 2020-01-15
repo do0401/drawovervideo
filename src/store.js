@@ -13,8 +13,11 @@ export const store = new Vuex.Store({
       free: []
     },
     history: [],
+    drawType: null,
     strokeColor: '#E62B2B',
-    strokeWidth: 3
+    strokeWidth: 3,
+    dash: [0, 0],
+    arrow: false
   },
 
   getters: {
