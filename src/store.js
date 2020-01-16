@@ -7,15 +7,46 @@ export const store = new Vuex.Store({
 	state: {
 		history: [],
 		drawType: null,
+		stage: {
+			canvas: null,
+			layer: null,
+			r1: null,
+			line: null,
+			rect: null,
+			circle: null,
+			angle: null,
+		},
 		drawOptions: {
 			strokeColor: '#E62B2B',
 			strokeWidth: 3,
 			dash: [0, 0],
 			arrow: false,
 		},
+		selected: null,
 	},
 
 	getters: {
+		canvas: function(state) {
+			return state.stage.canvas
+		},
+		layer: function(state) {
+			return state.stage.layer
+		},
+		r1: function(state) {
+			return state.stage.r1
+		},
+		line: function(state) {
+			return state.stage.line
+		},
+		rect: function(state) {
+			return state.stage.rect
+		},
+		circle: function(state) {
+			return state.stage.circle
+		},
+		angle: function(state) {
+			return state.stage.angle
+		},
 		strokeColor: function(state) {
 			return state.drawOptions.strokeColor
 		},

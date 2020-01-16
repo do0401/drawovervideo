@@ -1,122 +1,96 @@
-<template>
-	<div></div>
-</template>
-
-<script>
-import Konva from 'konva'
-
-export default {
-	name: 'Draw',
-
-	data: () => ({
-		mode: '',
-		drag: 'F',
-		posStart: null,
-		posNow: null,
-		free: null,
-		temp: {
-			line: null,
-			angle: {
-				group: null,
-				line: null,
-				arc: null,
-				text: null,
-			},
-		},
-	}),
-
-	methods: {
-		draw() {
+const draw = (() => {
+	let draw = {
+		_draw: () => {
 			// start the rubber drawing on mouse down.
-			this.$store.getters.r1.on('mousedown', e => {
+			this.r1.on('mousedown', e => {
 				if (this.$store.state.drawType === 'rect') {
 					this.mode = 'drawing'
-					this.startDrag({ x: e.evt.layerX, y: e.evt.layerY })
+					draw._startDrag({ x: e.evt.layerX, y: e.evt.layerY })
 				} else if (this.$store.state.drawType === 'circle') {
 					this.mode = 'drawing'
-					this.startDrag({ x: e.evt.layerX, y: e.evt.layerY })
+					draw._startDrag({ x: e.evt.layerX, y: e.evt.layerY })
 				} else if (this.$store.state.drawType === 'free') {
 					this.mode = 'drawing'
-					let pos = this.$store.getters.canvas.getPointerPosition()
+					let pos = this.canvas.getPointerPosition()
 					this.free = new Konva.Line({
 						points: [pos.x, pos.y],
 						stroke: this.$store.getters.strokeColor,
 						strokeWidth: this.$store.getters.strokeWidth,
 					})
-					this.$store.getters.layer.add(this.free)
+					this.layer.add(this.free)
 				}
 			})
 
 			// update the rubber rect on mouse move - note use of 'mode' var to avoid drawing after mouse released.
-			this.$store.getters.r1.on('mousemove', e => {
+			this.r1.on('mousemove', e => {
 				if (this.$store.state.drawType === 'rect' && this.mode === 'drawing') {
-					this.updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
+					this._updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
 				} else if (
 					this.$store.state.drawType === 'circle' &&
 					this.mode === 'drawing'
 				) {
-					this.updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
+					this._updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
 				} else if (
 					this.$store.state.drawType === 'line' &&
 					this.mode === 'drawing'
 				) {
-					this.updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
+					this._updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
 				} else if (this.$store.state.drawType === 'free') {
 					if (this.mode === 'drawing') {
 						if (this.mode !== 'drawing') return
-						const pos = this.$store.getters.canvas.getPointerPosition()
+						const pos = this.canvas.getPointerPosition()
 						const newPoints = this.free.points().concat([pos.x, pos.y])
 						this.free.points(newPoints)
-						this.$store.getters.layer.batchDraw()
+						this.layer.batchDraw()
 					}
 				} else if (
 					this.$store.state.drawType === 'angle' &&
 					this.mode === 'drawing'
 				) {
-					this.updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
+					this._updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
 				}
 			})
 
 			// here we create the new rect using the location and dimensions of the drawing rect.
-			this.$store.getters.r1.on('mouseup', e => {
+			this.r1.on('mouseup', e => {
 				// eslint-disable-next-line no-console
 				console.log('mouseup')
 				let shapeId = null
 				// Rect
 				if (this.$store.state.drawType === 'rect') {
 					this.mode = ''
-					this.$store.getters.rect.visible(false)
+					this.rect.visible(false)
 					const newRect = new Konva.Rect({
-						x: this.$store.getters.rect.x(),
-						y: this.$store.getters.rect.y(),
-						width: this.$store.getters.rect.width(),
-						height: this.$store.getters.rect.height(),
+						x: this.rect.x(),
+						y: this.rect.y(),
+						width: this.rect.width(),
+						height: this.rect.height(),
 						stroke: this.$store.getters.strokeColor,
 						strokeWidth: this.$store.getters.strokeWidth,
 						dash: this.$store.getters.dash,
 						// listening: false,
 						draggable: true,
 					})
-					this.$store.getters.layer.add(newRect)
+					this.layer.add(newRect)
 					// undo / redo 시 해당 rect 객체를 찾기 위해 id 부여
 					newRect.id(String(newRect._id))
 					shapeId = String(newRect._id)
 					// Circle
 				} else if (this.$store.state.drawType === 'circle') {
 					this.mode = ''
-					this.$store.getters.circle.visible(false)
+					this.circle.visible(false)
 					const newCircle = new Konva.Ellipse({
-						x: this.$store.getters.circle.x(),
-						y: this.$store.getters.circle.y(),
-						radiusX: this.$store.getters.circle.radiusX(),
-						radiusY: this.$store.getters.circle.radiusY(),
+						x: this.circle.x(),
+						y: this.circle.y(),
+						radiusX: this.circle.radiusX(),
+						radiusY: this.circle.radiusY(),
 						stroke: this.$store.getters.strokeColor,
 						strokeWidth: this.$store.getters.strokeWidth,
 						dash: this.$store.getters.dash,
 						// listening: false,
 						draggable: true,
 					})
-					this.$store.getters.layer.add(newCircle)
+					this.layer.add(newCircle)
 					// undo / redo 시 해당 circle 객체를 찾기 위해 id 부여
 					newCircle.id(String(newCircle._id))
 					shapeId = String(newCircle._id)
@@ -124,7 +98,7 @@ export default {
 				} else if (this.$store.state.drawType === 'line') {
 					if (e.evt.which === 1) {
 						this.mode = 'drawing'
-						this.startDrag({ x: e.evt.layerX, y: e.evt.layerY })
+						this._startDrag({ x: e.evt.layerX, y: e.evt.layerY })
 						if (this.temp.line === null) {
 							if (!this.$store.getters.arrow) {
 								this.temp.line = new Konva.Line({
@@ -157,20 +131,20 @@ export default {
 									pointerWidth: 6,
 								})
 							}
-							this.$store.getters.layer.add(this.temp.line)
+							this.layer.add(this.temp.line)
 						} else if (this.temp.line !== null) {
 							const newPoints = this.temp.line
 								.points()
 								.concat([this.posNow.x, this.posNow.y])
 							this.temp.line.points(newPoints)
-							this.$store.getters.layer.batchDraw()
+							this.layer.batchDraw()
 						}
 					} else if (e.evt.which === 3) {
 						// 우클릭 이벤트
 						// eslint-disable-next-line no-console
 						console.log('right mouseup')
 						this.mode = ''
-						this.$store.getters.line.visible(false)
+						this.line.visible(false)
 						this.temp.line.draggable(true)
 						// undo / redo 시 해당 line 객체를 찾기 위해 id 부여
 						this.temp.line.id(String(this.temp.line._id))
@@ -190,7 +164,7 @@ export default {
 					// 좌클릭일 때만 그려지도록
 					if (e.evt.which === 1) {
 						this.mode = 'drawing'
-						this.startDrag({ x: e.evt.layerX, y: e.evt.layerY })
+						this._startDrag({ x: e.evt.layerX, y: e.evt.layerY })
 						// 첫번째 좌표를 찍었을 때
 						if (this.temp.angle.line === null) {
 							this.temp.angle.group = new Konva.Group({
@@ -205,7 +179,7 @@ export default {
 							})
 							// 각도 line과 각 표시 arc를 드래그 시 같이 이동시키기 위해 group에 넣어준다.
 							this.temp.angle.group.add(this.temp.angle.line)
-							this.$store.getters.layer.add(this.temp.angle.group)
+							this.layer.add(this.temp.angle.group)
 							// 두번째 또는 세번째 좌표를 찍었을 때
 						} else if (
 							this.temp.angle.line !== null &&
@@ -215,16 +189,16 @@ export default {
 								.points()
 								.concat([this.posNow.x, this.posNow.y])
 							this.temp.angle.line.points(newPoints)
-							this.$store.getters.layer.batchDraw()
+							this.layer.batchDraw()
 							if (this.temp.angle.line.points().length === 6) {
 								this.mode = ''
-								this.$store.getters.angle.visible(false)
+								this.angle.visible(false)
 								// 각도 계산
-								const angle = this.calAngle(this.temp.angle.line.points())
+								const angle = this._calAngle(this.temp.angle.line.points())
 								// 각도 표시를 위한 함수
-								this.drawAngleArc(angle, this.temp.angle.line.points())
+								this._drawAngleArc(angle, this.temp.angle.line.points())
 								// 각도 텍스트 표시를 위한 함수
-								this.drawAngleText(
+								this._drawAngleText(
 									this.temp.angle.line.points()[2],
 									this.temp.angle.line.points()[3],
 									angle,
@@ -244,11 +218,11 @@ export default {
 						}
 					}
 				}
-				this.$store.getters.canvas.draw()
-				if (shapeId) this.addHistory(shapeId)
+				this.canvas.draw()
+				if (shapeId) this._addHistory(shapeId)
 			})
 
-			this.$store.getters.canvas.on('click', e => {
+			this.canvas.on('click', e => {
 				const selectedDiv = document.getElementById('selected')
 				this.$store.state.selected =
 					e.target.attrs.id === 'angle'
@@ -261,72 +235,72 @@ export default {
 					: 'selected: ' + null
 			})
 
-			this.$store.getters.layer.on('dragstart', () => {
+			this.layer.on('dragstart', () => {
 				// eslint-disable-next-line no-console
 				console.log('dragstart')
 				this.drag = 'T'
 			})
 
-			this.$store.getters.layer.on('dragend', () => {
+			this.layer.on('dragend', () => {
 				// eslint-disable-next-line no-console
 				console.log('dragend')
 				this.drag = 'F'
 			})
 
 			// 우클릭 이벤트(메뉴 팝업) 삭제
-			this.$store.getters.layer.on('contextmenu', e => {
+			this.layer.on('contextmenu', e => {
 				e.evt.preventDefault()
 			})
 		},
 
-		startDrag(posIn) {
+		_startDrag: posIn => {
 			this.posStart = { x: posIn.x, y: posIn.y }
 			this.posNow = { x: posIn.x, y: posIn.y }
 		},
 
-		updateDrag(posIn) {
+		_updateDrag: posIn => {
 			this.posNow = { x: posIn.x, y: posIn.y }
 			if (this.$store.state.drawType === 'rect') {
 				// update rubber rect position
-				const posRect = this.reverse(this.posStart, this.posNow)
-				this.$store.getters.rect.x(posRect.x1)
-				this.$store.getters.rect.y(posRect.y1)
-				this.$store.getters.rect.width(posRect.x2 - posRect.x1)
-				this.$store.getters.rect.height(posRect.y2 - posRect.y1)
-				this.$store.getters.rect.visible(true)
+				const posRect = this._reverse(this.posStart, this.posNow)
+				this.rect.x(posRect.x1)
+				this.rect.y(posRect.y1)
+				this.rect.width(posRect.x2 - posRect.x1)
+				this.rect.height(posRect.y2 - posRect.y1)
+				this.rect.visible(true)
 			} else if (this.$store.state.drawType === 'circle') {
 				// update rubber circle position
-				const posCircle = this.reverse(this.posStart, this.posNow)
-				this.$store.getters.circle.x(posCircle.x1)
-				this.$store.getters.circle.y(posCircle.y1)
-				this.$store.getters.circle.radiusX(posCircle.x2 - posCircle.x1)
-				this.$store.getters.circle.radiusY(posCircle.y2 - posCircle.y1)
-				this.$store.getters.circle.visible(true)
+				const posCircle = this._reverse(this.posStart, this.posNow)
+				this.circle.x(posCircle.x1)
+				this.circle.y(posCircle.y1)
+				this.circle.radiusX(posCircle.x2 - posCircle.x1)
+				this.circle.radiusY(posCircle.y2 - posCircle.y1)
+				this.circle.visible(true)
 			} else if (this.$store.state.drawType === 'line') {
 				// update rubber line position
-				this.$store.getters.line.points([
+				this.line.points([
 					this.posStart.x,
 					this.posStart.y,
 					this.posNow.x,
 					this.posNow.y,
 				])
-				this.$store.getters.line.visible(true)
+				this.line.visible(true)
 			} else if (this.$store.state.drawType === 'angle') {
 				// update rubber line position
-				this.$store.getters.angle.points([
+				this.angle.points([
 					this.posStart.x,
 					this.posStart.y,
 					this.posNow.x,
 					this.posNow.y,
 				])
-				this.$store.getters.angle.visible(true)
+				this.angle.visible(true)
 			}
 
-			this.$store.getters.canvas.draw() // redraw any changes.
+			this.canvas.draw() // redraw any changes.
 		},
 
 		// reverse co-ords if user drags left / up
-		reverse(r1, r2) {
+		_reverse: (r1, r2) => {
 			let r1x = r1.x
 			let r1y = r1.y
 			let r2x = r2.x
@@ -346,7 +320,7 @@ export default {
 			return { x1: r1x, y1: r1y, x2: r2x, y2: r2y } // return the corrected rect.
 		},
 
-		addHistory(id) {
+		_addHistory: id => {
 			// this.$store.state.history.push({drawType: this.$store.state.drawType, hidden: "F"})
 			this.$store.commit('addHistory', {
 				drawType: this.$store.state.drawType,
@@ -355,7 +329,7 @@ export default {
 			})
 		},
 
-		calAngle(points) {
+		_calAngle: points => {
 			// 각도 계산 함수
 			const ab = Math.sqrt(
 				Math.pow(points[2] - points[0], 2) + Math.pow(points[3] - points[1], 2),
@@ -374,7 +348,7 @@ export default {
 			return angle
 		},
 
-		drawAngleArc(angle, anglePath) {
+		_drawAngleArc: (angle, anglePath) => {
 			// 각도 arc 그려주는 함수
 			const p1 = [anglePath[0], anglePath[1]]
 			const p2 = [anglePath[2], anglePath[3]]
@@ -415,7 +389,7 @@ export default {
 			this.temp.angle.group.add(this.temp.angle.arc)
 		},
 
-		drawAngleText(x, y, angle) {
+		_drawAngleText: (x, y, angle) => {
 			this.temp.angle.text = new Konva.Text({
 				text: `${angle.toFixed(1)}`,
 				x,
@@ -425,8 +399,13 @@ export default {
 				draggable: true,
 			})
 			this.temp.angle.group.add(this.temp.angle.text)
-			this.$store.getters.canvas.draw()
+			this.canvas.draw()
 		},
-	},
-}
-</script>
+	}
+
+	return {
+		draw: () => draw._draw(),
+	}
+})()
+
+export default draw
