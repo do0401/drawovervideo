@@ -1,7 +1,10 @@
 <template>
 	<v-app>
 		<!-- <Integration /> -->
-		<Video />
+		<div class="d-flex">
+			<Video videoId="video1" canvasId="canvas1" />
+			<Video class="pl-12" videoId="video2" canvasId="canvas2" />
+		</div>
 		<Option />
 	</v-app>
 </template>
@@ -21,7 +24,22 @@ export default {
 	},
 
 	data: () => ({
-		//
+		numOfId: null,
+		display: {
+			video1: true,
+			video2: false,
+		},
 	}),
+
+	methods: {
+		idCounter() {
+			if (this.numOfId === null) {
+				this.numOfId = 1
+			} else {
+				this.numOfId = this.numOfId + 1
+			}
+			return this.numOfId
+		},
+	},
 }
 </script>

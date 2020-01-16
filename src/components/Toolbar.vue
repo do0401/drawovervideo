@@ -58,20 +58,30 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
 	name: 'Toolbar',
 
-	props: ['resizeCanvas'],
+	props: ['videoId', 'resizeCanvas'],
 
 	computed: {
 		setDrawType: {
 			get() {
-				return this.$store.state.drawType
+				return this[this.videoId].drawType
 			},
 			set(v) {
-				this.$store.state.drawType = v
+				this[this.videoId].drawType = v
 			},
 		},
+		...mapState({
+			video1: state => {
+				return state.video1
+			},
+			video2: state => {
+				return state.video2
+			},
+		}),
 	},
 
 	methods: {
@@ -92,7 +102,7 @@ export default {
 			console.log('undoHistory')
 
 			// history array
-			const historyArray = this.$store.state.history
+			const historyArray = this[this.videoId].history
 
 			// undo할 shape 의 id를 찾아서 id를 받아옴
 			let undoId = null
@@ -104,13 +114,13 @@ export default {
 				}
 			})
 			// 받아온 id로 history를 찾아서 hidden을 "T" 로 변경
-			this.$store.commit('undoHistory', undoId)
+			this.$store.commit('undoHistory', [undoId, { videoId: this.videoId }])
 
 			// canvas 에서 undo id를 검색해서 shape을 찾음
-			const undoShape = this.$store.getters.canvas.find(`#${undoId}`)
+			const undoShape = this[this.videoId].stage.canvas.find(`#${undoId}`)
 			// 찾은 shape의 visible 값을 "false" 로 변경
 			undoShape.visible(false)
-			this.$store.getters.canvas.draw() // redraw any changes.
+			this[this.videoId].stage.canvas.draw() // redraw any changes.
 		},
 
 		redoHistory() {
@@ -118,7 +128,7 @@ export default {
 			console.log('redoHistory')
 
 			// history array
-			const historyArray = this.$store.state.history
+			const historyArray = this[this.videoId].history
 
 			// redo할 shape 의 id를 찾아서 id를 받아옴
 			let redoId = null
@@ -129,49 +139,49 @@ export default {
 				}
 			})
 			// 받아온 id로 history를 찾아서 hidden을 "T" 로 변경
-			this.$store.commit('redoHistory', redoId)
+			this.$store.commit('redoHistory', [redoId, { videoId: this.videoId }])
 
 			// canvas 에서 redo id를 검색해서 shape을 찾음
-			const redoShape = this.$store.getters.canvas.find(`#${redoId}`)
+			const redoShape = this[this.videoId].stage.canvas.find(`#${redoId}`)
 			// 찾은 shape의 visible 값을 "false" 로 변경
 			redoShape.visible(true)
-			this.$store.getters.canvas.draw() // redraw any changes.
+			this[this.videoId].stage.canvas.draw() // redraw any changes.
 		},
 
 		removeDrawing() {
 			// layer 의 chlildren 삭제
-			this.$store.state.stage.layer.destroyChildren()
+			this[this.videoId].stage.layer.destroyChildren()
 			// this.resizeCanvas()
 			this.$props.resizeCanvas()
 		},
 
 		removeOne() {
-			if (this.selected) {
-				const selectedId = this.selected.attrs.id
-				const historyArray = this.$store.state.history
+			if (this[this.videoId].selected) {
+				const selectedId = this[this.videoId].selected.attrs.id
+				const historyArray = this[this.videoId].history
 
-				this.$store.state.history = historyArray.filter(function(item) {
+				this[this.videoId].history = historyArray.filter(function(item) {
 					return item.id !== selectedId
 				})
 
-				this.selected.remove()
-				this.$store.getters.canvas.draw()
+				this[this.videoId].selected.remove()
+				this[this.videoId].stage.canvas.draw()
 			}
 		},
 
 		cloneOne() {
-			if (this.selected) {
-				const clone = this.selected.clone({
+			if (this[this.videoId].selected) {
+				const clone = this[this.videoId].selected.clone({
 					x: 5,
 					y: 5,
 				})
 
-				this.$store.getters.layer.add(clone)
+				this[this.videoId].stage.layer.add(clone)
 
-				console.log(this.selected)
+				console.log(this[this.videoId].selected)
 				console.log(clone)
 
-				this.$store.getters.canvas.draw()
+				this[this.videoId].stage.canvas.draw()
 			}
 		},
 	},

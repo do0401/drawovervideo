@@ -4,9 +4,21 @@
 
 <script>
 import Konva from 'konva'
+import { mapState } from 'vuex'
 
 export default {
 	name: 'Draw',
+
+	props: ['videoId'],
+
+	computed: mapState({
+		video1: state => {
+			return state.video1
+		},
+		video2: state => {
+			return state.video2
+		},
+	}),
 
 	data: () => ({
 		mode: '',
@@ -28,49 +40,49 @@ export default {
 	methods: {
 		draw() {
 			// start the rubber drawing on mouse down.
-			this.$store.getters.r1.on('mousedown', e => {
-				if (this.$store.state.drawType === 'rect') {
+			this[this.videoId].stage.r1.on('mousedown', e => {
+				if (this[this.videoId].drawType === 'rect') {
 					this.mode = 'drawing'
 					this.startDrag({ x: e.evt.layerX, y: e.evt.layerY })
-				} else if (this.$store.state.drawType === 'circle') {
+				} else if (this[this.videoId].drawType === 'circle') {
 					this.mode = 'drawing'
 					this.startDrag({ x: e.evt.layerX, y: e.evt.layerY })
-				} else if (this.$store.state.drawType === 'free') {
+				} else if (this[this.videoId].drawType === 'free') {
 					this.mode = 'drawing'
-					let pos = this.$store.getters.canvas.getPointerPosition()
+					let pos = this[this.videoId].stage.canvas.getPointerPosition()
 					this.free = new Konva.Line({
 						points: [pos.x, pos.y],
 						stroke: this.$store.getters.strokeColor,
 						strokeWidth: this.$store.getters.strokeWidth,
 					})
-					this.$store.getters.layer.add(this.free)
+					this[this.videoId].stage.layer.add(this.free)
 				}
 			})
 
 			// update the rubber rect on mouse move - note use of 'mode' var to avoid drawing after mouse released.
-			this.$store.getters.r1.on('mousemove', e => {
-				if (this.$store.state.drawType === 'rect' && this.mode === 'drawing') {
+			this[this.videoId].stage.r1.on('mousemove', e => {
+				if (this[this.videoId].drawType === 'rect' && this.mode === 'drawing') {
 					this.updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
 				} else if (
-					this.$store.state.drawType === 'circle' &&
+					this[this.videoId].drawType === 'circle' &&
 					this.mode === 'drawing'
 				) {
 					this.updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
 				} else if (
-					this.$store.state.drawType === 'line' &&
+					this[this.videoId].drawType === 'line' &&
 					this.mode === 'drawing'
 				) {
 					this.updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
-				} else if (this.$store.state.drawType === 'free') {
+				} else if (this[this.videoId].drawType === 'free') {
 					if (this.mode === 'drawing') {
 						if (this.mode !== 'drawing') return
-						const pos = this.$store.getters.canvas.getPointerPosition()
+						const pos = this[this.videoId].stage.canvas.getPointerPosition()
 						const newPoints = this.free.points().concat([pos.x, pos.y])
 						this.free.points(newPoints)
-						this.$store.getters.layer.batchDraw()
+						this[this.videoId].stage.layer.batchDraw()
 					}
 				} else if (
-					this.$store.state.drawType === 'angle' &&
+					this[this.videoId].drawType === 'angle' &&
 					this.mode === 'drawing'
 				) {
 					this.updateDrag({ x: e.evt.layerX, y: e.evt.layerY })
@@ -78,50 +90,50 @@ export default {
 			})
 
 			// here we create the new rect using the location and dimensions of the drawing rect.
-			this.$store.getters.r1.on('mouseup', e => {
+			this[this.videoId].stage.r1.on('mouseup', e => {
 				// eslint-disable-next-line no-console
 				console.log('mouseup')
 				let shapeId = null
 				// Rect
-				if (this.$store.state.drawType === 'rect') {
+				if (this[this.videoId].drawType === 'rect') {
 					this.mode = ''
-					this.$store.getters.rect.visible(false)
+					this[this.videoId].stage.rect.visible(false)
 					const newRect = new Konva.Rect({
-						x: this.$store.getters.rect.x(),
-						y: this.$store.getters.rect.y(),
-						width: this.$store.getters.rect.width(),
-						height: this.$store.getters.rect.height(),
+						x: this[this.videoId].stage.rect.x(),
+						y: this[this.videoId].stage.rect.y(),
+						width: this[this.videoId].stage.rect.width(),
+						height: this[this.videoId].stage.rect.height(),
 						stroke: this.$store.getters.strokeColor,
 						strokeWidth: this.$store.getters.strokeWidth,
 						dash: this.$store.getters.dash,
 						// listening: false,
 						draggable: true,
 					})
-					this.$store.getters.layer.add(newRect)
+					this[this.videoId].stage.layer.add(newRect)
 					// undo / redo 시 해당 rect 객체를 찾기 위해 id 부여
 					newRect.id(String(newRect._id))
 					shapeId = String(newRect._id)
 					// Circle
-				} else if (this.$store.state.drawType === 'circle') {
+				} else if (this[this.videoId].drawType === 'circle') {
 					this.mode = ''
-					this.$store.getters.circle.visible(false)
+					this[this.videoId].stage.circle.visible(false)
 					const newCircle = new Konva.Ellipse({
-						x: this.$store.getters.circle.x(),
-						y: this.$store.getters.circle.y(),
-						radiusX: this.$store.getters.circle.radiusX(),
-						radiusY: this.$store.getters.circle.radiusY(),
+						x: this[this.videoId].stage.circle.x(),
+						y: this[this.videoId].stage.circle.y(),
+						radiusX: this[this.videoId].stage.circle.radiusX(),
+						radiusY: this[this.videoId].stage.circle.radiusY(),
 						stroke: this.$store.getters.strokeColor,
 						strokeWidth: this.$store.getters.strokeWidth,
 						dash: this.$store.getters.dash,
 						// listening: false,
 						draggable: true,
 					})
-					this.$store.getters.layer.add(newCircle)
+					this[this.videoId].stage.layer.add(newCircle)
 					// undo / redo 시 해당 circle 객체를 찾기 위해 id 부여
 					newCircle.id(String(newCircle._id))
 					shapeId = String(newCircle._id)
 					// Line
-				} else if (this.$store.state.drawType === 'line') {
+				} else if (this[this.videoId].drawType === 'line') {
 					if (e.evt.which === 1) {
 						this.mode = 'drawing'
 						this.startDrag({ x: e.evt.layerX, y: e.evt.layerY })
@@ -157,20 +169,20 @@ export default {
 									pointerWidth: 6,
 								})
 							}
-							this.$store.getters.layer.add(this.temp.line)
+							this[this.videoId].stage.layer.add(this.temp.line)
 						} else if (this.temp.line !== null) {
 							const newPoints = this.temp.line
 								.points()
 								.concat([this.posNow.x, this.posNow.y])
 							this.temp.line.points(newPoints)
-							this.$store.getters.layer.batchDraw()
+							this[this.videoId].stage.layer.batchDraw()
 						}
 					} else if (e.evt.which === 3) {
 						// 우클릭 이벤트
 						// eslint-disable-next-line no-console
 						console.log('right mouseup')
 						this.mode = ''
-						this.$store.getters.line.visible(false)
+						this[this.videoId].stage.line.visible(false)
 						this.temp.line.draggable(true)
 						// undo / redo 시 해당 line 객체를 찾기 위해 id 부여
 						this.temp.line.id(String(this.temp.line._id))
@@ -178,7 +190,7 @@ export default {
 						this.temp.line = null
 					}
 					// Free
-				} else if (this.$store.state.drawType === 'free') {
+				} else if (this[this.videoId].drawType === 'free') {
 					this.mode = ''
 					// undo / redo 시 해당 free 객체를 찾기 위해 id 부여
 					this.free.id(String(this.free._id))
@@ -186,7 +198,7 @@ export default {
 					shapeId = String(this.free._id)
 					this.free = null
 					// Angle
-				} else if (this.$store.state.drawType === 'angle') {
+				} else if (this[this.videoId].drawType === 'angle') {
 					// 좌클릭일 때만 그려지도록
 					if (e.evt.which === 1) {
 						this.mode = 'drawing'
@@ -205,7 +217,7 @@ export default {
 							})
 							// 각도 line과 각 표시 arc를 드래그 시 같이 이동시키기 위해 group에 넣어준다.
 							this.temp.angle.group.add(this.temp.angle.line)
-							this.$store.getters.layer.add(this.temp.angle.group)
+							this[this.videoId].stage.layer.add(this.temp.angle.group)
 							// 두번째 또는 세번째 좌표를 찍었을 때
 						} else if (
 							this.temp.angle.line !== null &&
@@ -215,10 +227,10 @@ export default {
 								.points()
 								.concat([this.posNow.x, this.posNow.y])
 							this.temp.angle.line.points(newPoints)
-							this.$store.getters.layer.batchDraw()
+							this[this.videoId].stage.layer.batchDraw()
 							if (this.temp.angle.line.points().length === 6) {
 								this.mode = ''
-								this.$store.getters.angle.visible(false)
+								this[this.videoId].stage.angle.visible(false)
 								// 각도 계산
 								const angle = this.calAngle(this.temp.angle.line.points())
 								// 각도 표시를 위한 함수
@@ -244,37 +256,37 @@ export default {
 						}
 					}
 				}
-				this.$store.getters.canvas.draw()
-				if (shapeId) this.addHistory(shapeId)
+				this[this.videoId].stage.canvas.draw()
+				if (shapeId) this.addHistory(shapeId, this.videoId)
 			})
 
-			this.$store.getters.canvas.on('click', e => {
+			this[this.videoId].stage.canvas.on('click', e => {
 				const selectedDiv = document.getElementById('selected')
-				this.$store.state.selected =
+				this[this.videoId].selected =
 					e.target.attrs.id === 'angle'
 						? e.target.parent
 						: e.target.attrs.id === 'eventArea'
 						? null
 						: e.target
-				selectedDiv.innerHTML = this.$store.state.selected
-					? 'selected: ' + this.$store.state.selected.attrs.id
+				selectedDiv.innerHTML = this[this.videoId].selected
+					? 'selected: ' + this[this.videoId].selected.attrs.id
 					: 'selected: ' + null
 			})
 
-			this.$store.getters.layer.on('dragstart', () => {
+			this[this.videoId].stage.layer.on('dragstart', () => {
 				// eslint-disable-next-line no-console
 				console.log('dragstart')
 				this.drag = 'T'
 			})
 
-			this.$store.getters.layer.on('dragend', () => {
+			this[this.videoId].stage.layer.on('dragend', () => {
 				// eslint-disable-next-line no-console
 				console.log('dragend')
 				this.drag = 'F'
 			})
 
 			// 우클릭 이벤트(메뉴 팝업) 삭제
-			this.$store.getters.layer.on('contextmenu', e => {
+			this[this.videoId].stage.layer.on('contextmenu', e => {
 				e.evt.preventDefault()
 			})
 		},
@@ -286,43 +298,43 @@ export default {
 
 		updateDrag(posIn) {
 			this.posNow = { x: posIn.x, y: posIn.y }
-			if (this.$store.state.drawType === 'rect') {
+			if (this[this.videoId].drawType === 'rect') {
 				// update rubber rect position
 				const posRect = this.reverse(this.posStart, this.posNow)
-				this.$store.getters.rect.x(posRect.x1)
-				this.$store.getters.rect.y(posRect.y1)
-				this.$store.getters.rect.width(posRect.x2 - posRect.x1)
-				this.$store.getters.rect.height(posRect.y2 - posRect.y1)
-				this.$store.getters.rect.visible(true)
-			} else if (this.$store.state.drawType === 'circle') {
+				this[this.videoId].stage.rect.x(posRect.x1)
+				this[this.videoId].stage.rect.y(posRect.y1)
+				this[this.videoId].stage.rect.width(posRect.x2 - posRect.x1)
+				this[this.videoId].stage.rect.height(posRect.y2 - posRect.y1)
+				this[this.videoId].stage.rect.visible(true)
+			} else if (this[this.videoId].drawType === 'circle') {
 				// update rubber circle position
 				const posCircle = this.reverse(this.posStart, this.posNow)
-				this.$store.getters.circle.x(posCircle.x1)
-				this.$store.getters.circle.y(posCircle.y1)
-				this.$store.getters.circle.radiusX(posCircle.x2 - posCircle.x1)
-				this.$store.getters.circle.radiusY(posCircle.y2 - posCircle.y1)
-				this.$store.getters.circle.visible(true)
-			} else if (this.$store.state.drawType === 'line') {
+				this[this.videoId].stage.circle.x(posCircle.x1)
+				this[this.videoId].stage.circle.y(posCircle.y1)
+				this[this.videoId].stage.circle.radiusX(posCircle.x2 - posCircle.x1)
+				this[this.videoId].stage.circle.radiusY(posCircle.y2 - posCircle.y1)
+				this[this.videoId].stage.circle.visible(true)
+			} else if (this[this.videoId].drawType === 'line') {
 				// update rubber line position
-				this.$store.getters.line.points([
+				this[this.videoId].stage.line.points([
 					this.posStart.x,
 					this.posStart.y,
 					this.posNow.x,
 					this.posNow.y,
 				])
-				this.$store.getters.line.visible(true)
-			} else if (this.$store.state.drawType === 'angle') {
+				this[this.videoId].stage.line.visible(true)
+			} else if (this[this.videoId].drawType === 'angle') {
 				// update rubber line position
-				this.$store.getters.angle.points([
+				this[this.videoId].stage.angle.points([
 					this.posStart.x,
 					this.posStart.y,
 					this.posNow.x,
 					this.posNow.y,
 				])
-				this.$store.getters.angle.visible(true)
+				this[this.videoId].stage.angle.visible(true)
 			}
 
-			this.$store.getters.canvas.draw() // redraw any changes.
+			this[this.videoId].stage.canvas.draw() // redraw any changes.
 		},
 
 		// reverse co-ords if user drags left / up
@@ -346,13 +358,16 @@ export default {
 			return { x1: r1x, y1: r1y, x2: r2x, y2: r2y } // return the corrected rect.
 		},
 
-		addHistory(id) {
-			// this.$store.state.history.push({drawType: this.$store.state.drawType, hidden: "F"})
-			this.$store.commit('addHistory', {
-				drawType: this.$store.state.drawType,
-				id,
-				hidden: 'F',
-			})
+		addHistory(id, videoId) {
+			// this.$store.state.history.push({drawType: this[this.videoId].drawType, hidden: "F"})
+			this.$store.commit('addHistory', [
+				{
+					drawType: this[this.videoId].drawType,
+					id,
+					hidden: 'F',
+				},
+				{ videoId },
+			])
 		},
 
 		calAngle(points) {
@@ -407,9 +422,9 @@ export default {
 				outerRadius: 20,
 				angle,
 				rotation: rotateAngle,
-				stroke: this.$store.state.drawOptions.strokeColor,
+				stroke: this.$store.getters.strokeColor,
 				strokeWidth: this.$store.getters.strokeWidth,
-				dash: this.$store.state.drawOptions.dash,
+				dash: this.$store.getters.dash,
 				id: 'angle',
 			})
 			this.temp.angle.group.add(this.temp.angle.arc)
@@ -421,11 +436,11 @@ export default {
 				x,
 				y,
 				fontSize: 10,
-				fill: this.$store.state.drawOptions.strokeColor,
+				fill: this.$store.getters.strokeColor,
 				draggable: true,
 			})
 			this.temp.angle.group.add(this.temp.angle.text)
-			this.$store.getters.canvas.draw()
+			this[this.videoId].stage.canvas.draw()
 		},
 	},
 }
