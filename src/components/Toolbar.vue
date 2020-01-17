@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<v-card class="toolbar" max-width="700" height="50" outlined>
+		<v-card id="toolbar" class="toolbar" max-width="700" height="50" outlined>
 			<v-container>
 				<v-flex xs12>
 					<v-btn class="play btn" color="#37474F" @click="play" dark small
@@ -51,6 +51,14 @@
 					<v-btn class="clone btn" color="#37474F" @click="cloneOne" dark small
 						>clone</v-btn
 					>
+					<v-btn
+						class="save btn"
+						color="#009432"
+						@click="savePicture"
+						dark
+						small
+						>capture</v-btn
+					>
 				</v-flex>
 			</v-container>
 		</v-card>
@@ -59,11 +67,12 @@
 
 <script>
 import { mapState } from 'vuex'
+import html2canvas from 'html2canvas'
 
 export default {
 	name: 'Toolbar',
 
-	props: ['videoId', 'resizeCanvas'],
+	props: ['videoId', 'canvasId', 'resizeCanvas'],
 
 	computed: {
 		setDrawType: {
@@ -86,13 +95,13 @@ export default {
 
 	methods: {
 		play() {
-			const videoPlayer = document.getElementById('video')
+			const videoPlayer = document.getElementById(this.videoId)
 
 			videoPlayer.play()
 		},
 
 		pause() {
-			const videoPlayer = document.getElementById('video')
+			const videoPlayer = document.getElementById(this.videoId)
 
 			videoPlayer.pause()
 		},
@@ -184,6 +193,37 @@ export default {
 				this[this.videoId].stage.canvas.draw()
 			}
 		},
+
+		savePicture() {
+			const canvas = document.createElement('canvas')
+			const ctx = canvas.getContext('2d')
+			const video = document.getElementById(this.videoId)
+			const shape = document.querySelector(`#${this.canvasId} canvas`)
+			const w = video.offsetWidth
+			const h = video.offsetHeight
+
+			canvas.width = w
+			canvas.height = h
+
+			ctx.fillRect(0, 0, w, h)
+			ctx.drawImage(video, 0, 0, w, h)
+			ctx.drawImage(shape, 0, 0, w, h)
+			video.style.backgroundImage = `url(${canvas.toDataURL()})`
+			video.style.backgroundSize = 'cover'
+			ctx.clearRect(0, 0, w, h)
+
+			html2canvas(document.getElementById(this.videoId), {
+				allowTaint: true,
+				useCORS: true,
+			}).then(canvas => {
+				let a = document.createElement('a')
+				a.href = canvas
+					.toDataURL('image/png')
+					.replace(/^data:image\/png/, 'data:application/octet-stream')
+				a.download = 'videoCapture.jpg'
+				a.click()
+			})
+		},
 	},
 }
 </script>
@@ -207,6 +247,14 @@ export default {
 
 .clear {
 	left: 440px;
+}
+
+.clone {
+	left: 5px;
+}
+
+.save {
+	float: right;
 }
 
 #output,

@@ -11,6 +11,7 @@
     "@babel/polyfill": "^7.4.4",
     "@mdi/font": "^3.6.95",
     "core-js": "^3.6.2",
+    "html2canvas": "^1.0.0-rc.5",
     "konva": "^4.1.2",
     "roboto-fontface": "*",
     "vue": "^2.6.10",

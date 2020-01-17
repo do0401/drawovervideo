@@ -29,6 +29,7 @@ export default {
 		temp: {
 			line: null,
 			angle: {
+				rotate: null,
 				group: null,
 				line: null,
 				arc: null,
@@ -241,9 +242,27 @@ export default {
 									this.temp.angle.line.points()[3],
 									angle,
 								)
+								// // rotate
+								// this.temp.angle.rotate = new Konva.Transformer({
+								// 	node: this.temp.angle.group,
+								// 	centeredScaling: true,
+								// 	rotationSnaps: [0, 90, 180, 270],
+								// 	resizeEnabled: false,
+								// 	anchorFill: '#f6b93b',
+								// 	anchorStroke: '#f6b93b',
+								// 	anchorCornerRadius: 1,
+								// 	anchorStrokeWidth: 2,
+								// 	anchorSize: 10,
+								// 	borderStroke: '#f6b93b',
+								// 	borderEnabled: true,
+								// })
+
+								// this[this.videoId].stage.layer.add(this.temp.angle.rotate)
+
 								// group id 생성 및 shapeId에 group id 삽입
 								this.temp.angle.group.id(String(this.temp.angle.group._id))
 								shapeId = String(this.temp.angle.group._id)
+
 								const output = document.getElementById('outputAngle')
 								output.innerHTML = 'angle: ' + angle
 
@@ -252,8 +271,25 @@ export default {
 								this.temp.angle.group = null
 								this.temp.angle.arc = null
 								this.temp.angle.text = null
+								this.temp.angle.rotate = null
 							}
 						}
+					} else {
+						if (!this.temp.angle.group) {
+							return true
+						}
+						// 그리는 도중 우클릭 시 초기화
+						this.mode = ''
+						this[this.videoId].stage.angle.visible(false)
+
+						this.temp.angle.group.remove()
+
+						// 변수 초기화
+						this.temp.angle.line = null
+						this.temp.angle.group = null
+						this.temp.angle.arc = null
+						this.temp.angle.text = null
+						this.temp.angle.rotate = null
 					}
 				}
 				this[this.videoId].stage.canvas.draw()
@@ -440,7 +476,7 @@ export default {
 				draggable: true,
 			})
 			this.temp.angle.group.add(this.temp.angle.text)
-			this[this.videoId].stage.canvas.draw()
+			// this[this.videoId].stage.canvas.draw()
 		},
 	},
 }

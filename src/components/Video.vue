@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<v-container class="videoContainer" fluid>
+		<v-container id="videoContainer" class="videoContainer" fluid>
 			<video
 				v-bind:id="this.videoId"
 				class="video"
@@ -11,7 +11,11 @@
 			<div v-bind:id="this.canvasId" class="canvas"></div>
 		</v-container>
 		<Draw ref="draw" v-bind:videoId="this.videoId" />
-		<Toolbar :resizeCanvas="resizeCanvas" v-bind:videoId="this.videoId" />
+		<Toolbar
+			:resizeCanvas="resizeCanvas"
+			v-bind:videoId="this.videoId"
+			v-bind:canvasId="this.canvasId"
+		/>
 	</div>
 </template>
 
@@ -56,7 +60,7 @@ export default {
 			this[this.videoId].stage.r1 = new Konva.Rect({
 				width: w,
 				height: h,
-				fill: 'gold',
+				// fill: 'gold',
 				opacity: 0.3,
 				id: 'eventArea',
 			})
