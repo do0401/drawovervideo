@@ -51,12 +51,7 @@
 					<v-btn class="clone btn" color="#37474F" @click="cloneOne" dark small
 						>clone</v-btn
 					>
-					<v-btn
-						class="capture--video btn"
-						color="#009432"
-						@click="captureVideo"
-						dark
-						small
+					<v-btn class="capture--video btn" color="#009432" dark small
 						>capture video</v-btn
 					>
 					<v-btn
