@@ -52,12 +52,20 @@
 						>clone</v-btn
 					>
 					<v-btn
-						class="save btn"
+						class="capture--video btn"
 						color="#009432"
-						@click="savePicture"
+						@click="captureVideo"
 						dark
 						small
-						>capture</v-btn
+						>capture video</v-btn
+					>
+					<v-btn
+						class="capture--image btn"
+						color="#009432"
+						@click="captureImage"
+						dark
+						small
+						>capture image</v-btn
 					>
 				</v-flex>
 			</v-container>
@@ -68,6 +76,7 @@
 <script>
 import { mapState } from 'vuex'
 import html2canvas from 'html2canvas'
+import cv from 'opencv4nodejs'
 
 export default {
 	name: 'Toolbar',
@@ -194,7 +203,7 @@ export default {
 			}
 		},
 
-		savePicture() {
+		captureImage() {
 			const canvas = document.createElement('canvas')
 			const ctx = canvas.getContext('2d')
 			const video = document.getElementById(this.videoId)
@@ -223,6 +232,13 @@ export default {
 				a.download = 'videoCapture.jpg'
 				a.click()
 			})
+		},
+
+		openCVTest() {
+			const video = document.getElementById(this.videoId)
+			let cap = new cv.VideoCapture(video)
+
+			console.log(cap)
 		},
 	},
 }
@@ -253,8 +269,13 @@ export default {
 	left: 5px;
 }
 
-.save {
+.capture--video,
+.capture--image {
 	float: right;
+}
+
+.capture--image {
+	right: 5px;
 }
 
 #output,
