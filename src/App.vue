@@ -5,14 +5,18 @@
 			<Video videoId="video1" canvasId="canvas1" />
 			<Video class="pl-12" videoId="video2" canvasId="canvas2" />
 		</div>
-		<Option />
+		<OptionScreen />
+		<OptionDrawing />
+		<OptionStroke />
 	</v-app>
 </template>
 
 <script>
 // import Integration from './components/Integration'
 import Video from './components/Video'
-import Option from './components/Option'
+import OptionScreen from './components/OptionScreen'
+import OptionDrawing from './components/OptionDrawing'
+import OptionStroke from './components/OptionStroke'
 
 export default {
 	name: 'App',
@@ -20,7 +24,9 @@ export default {
 	components: {
 		// Integration,
 		Video,
-		Option,
+		OptionScreen,
+		OptionDrawing,
+		OptionStroke,
 	},
 
 	data: () => ({

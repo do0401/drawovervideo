@@ -5,6 +5,8 @@ Vue.use(Vuex)
 
 export const store = new Vuex.Store({
 	state: {
+		history: [],
+		drawType: null,
 		drawOptions: {
 			strokeColor: '#E62B2B',
 			strokeWidth: 3,
@@ -12,8 +14,6 @@ export const store = new Vuex.Store({
 			arrow: false,
 		},
 		video1: {
-			history: [],
-			drawType: null,
 			stage: {
 				canvas: null,
 				layer: null,
@@ -26,8 +26,6 @@ export const store = new Vuex.Store({
 			selected: null,
 		},
 		video2: {
-			history: [],
-			drawType: null,
 			stage: {
 				canvas: null,
 				layer: null,
@@ -40,8 +38,6 @@ export const store = new Vuex.Store({
 			selected: null,
 		},
 		video3: {
-			history: [],
-			drawType: null,
 			stage: {
 				canvas: null,
 				layer: null,
@@ -54,8 +50,6 @@ export const store = new Vuex.Store({
 			selected: null,
 		},
 		video4: {
-			history: [],
-			drawType: null,
 			stage: {
 				canvas: null,
 				layer: null,
@@ -107,8 +101,8 @@ export const store = new Vuex.Store({
 
 	mutations: {
 		addHistory: (state, payload) => {
-			let history = state[payload[1].videoId].history
-			history.push(payload[0])
+			let history = state.history
+			history.push(payload)
 			// hidden 이 "T" 인 데이터는 배열 맨 뒤쪽으로 보냄(history undo/redo 문제 때문)
 			for (let i = history.length - 1; i >= 0; i -= 1) {
 				if (history[i].hidden === 'T') {
@@ -116,25 +110,21 @@ export const store = new Vuex.Store({
 					history.splice(i, 1)
 				}
 			}
-			console.log(state[payload[1].videoId].history)
-			state[payload[1].videoId].history = history
+			console.log(state.history)
+			state.history = history
 		},
 
 		undoHistory: (state, payload) => {
-			let history = state[payload[1].videoId].history
-			const r = history.find(entry => entry.id === payload[0])
+			const r = state.history.find(entry => entry.id === payload)
 			if (r) {
 				r.hidden = 'T'
-				state[payload[1].videoId].history = history
 			}
 		},
 
 		redoHistory: (state, payload) => {
-			let history = state[payload[1].videoId].history
-			const r = history.find(entry => entry.id === payload[0])
+			const r = state.history.find(entry => entry.id === payload)
 			if (r) {
 				r.hidden = 'F'
-				state[payload[1].videoId].history = history
 			}
 		},
 	},

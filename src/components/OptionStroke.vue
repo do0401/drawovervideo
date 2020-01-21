@@ -38,20 +38,6 @@
 				</v-container>
 			</v-card>
 		</div>
-		<div class="pa-2">
-			<v-card class="lineArrow--wrap mt-2" width="325px" height="55px" outlined>
-				<v-container class="d-flex justify-center mt-3 pa-0" grid-list-xs>
-					<v-switch
-						v-model="setArrow"
-						label="Arrow Type"
-						color="success"
-						value="arrow"
-						hide-details
-						class="ma-0"
-					></v-switch>
-				</v-container>
-			</v-card>
-		</div>
 	</v-card>
 </template>
 
@@ -98,16 +84,6 @@ export default {
 			set(v) {
 				this.strokeDash = v
 				this.$store.state.drawOptions.dash = [v, v]
-			},
-		},
-
-		setArrow: {
-			get() {
-				return this.arrow
-			},
-			set(v) {
-				this.arrow = v
-				this.$store.state.drawOptions.arrow = v
 			},
 		},
 	},

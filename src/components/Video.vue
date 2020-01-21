@@ -6,34 +6,40 @@
 				class="video"
 				src="../assets/videos/example.mp4"
 				width="500"
+				controls
 				@resize="resizeCanvas"
 			></video>
 			<div v-bind:id="this.canvasId" class="canvas"></div>
 		</v-container>
 		<Draw ref="draw" v-bind:videoId="this.videoId" />
-		<Toolbar
+		<!-- <Toolbar
 			:resizeCanvas="resizeCanvas"
 			v-bind:videoId="this.videoId"
 			v-bind:canvasId="this.canvasId"
-		/>
+		/> -->
 	</div>
 </template>
 
 <script>
 import Konva from 'konva'
 import Draw from './Draw'
-import Toolbar from './Toolbar'
 import { mapState } from 'vuex'
+import EventBus from '../eventBus'
 
 export default {
 	name: 'Video',
 
 	components: {
 		Draw,
-		Toolbar,
 	},
 
 	props: ['videoId', 'canvasId'],
+
+	created() {
+		EventBus.$on('eventBus__resizeCanvas', () => {
+			this.resizeCanvas()
+		})
+	},
 
 	computed: mapState({
 		video1: state => {
