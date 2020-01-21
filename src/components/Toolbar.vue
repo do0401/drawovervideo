@@ -51,7 +51,12 @@
 					<v-btn class="clone btn" color="#37474F" @click="cloneOne" dark small
 						>clone</v-btn
 					>
-					<v-btn class="capture--video btn" color="#009432" dark small
+					<v-btn
+						class="capture--video btn"
+						color="#009432"
+						@click="openCVTest"
+						dark
+						small
 						>capture video</v-btn
 					>
 					<v-btn
@@ -71,7 +76,9 @@
 <script>
 import { mapState } from 'vuex'
 import html2canvas from 'html2canvas'
-import cv from 'opencv4nodejs'
+// import { test } from '../plugins/opencv'
+// eslint-disable-next-line no-undef
+const cv = require('opencv4nodejs')
 
 export default {
 	name: 'Toolbar',
@@ -229,11 +236,18 @@ export default {
 			})
 		},
 
-		openCVTest() {
-			const video = document.getElementById(this.videoId)
-			let cap = new cv.VideoCapture(video)
+		async openCVTest() {
+			try {
+				let video = document.getElementById(this.videoId)
+				let src = new cv.Mat(video.height, video.width, cv.CV_8UC4)
 
-			console.log(cap)
+				let cap = new cv.VideoCapture(video.currentSrc)
+				// console.log(video.attributes.src.ownerElement.currentSrc)
+				console.log(video.currentSrc)
+				console.log(cap.read(src))
+			} catch (error) {
+				console.log('error', error)
+			}
 		},
 	},
 }

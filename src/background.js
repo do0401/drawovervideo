@@ -5,7 +5,7 @@ import {
 	createProtocol,
 	installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
-import cv from 'opencv4nodejs'
+// import cv from 'opencv4nodejs'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Keep a global reference of the window object, if you don't, the window will
