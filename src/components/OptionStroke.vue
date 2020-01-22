@@ -48,12 +48,6 @@ export default {
 		strokeWidth: 3,
 		strokeDash: 0,
 		arrow: false,
-		hideCanvas: false,
-		hideInputs: false,
-		hideModeSwitch: false,
-		mode: 'rgba',
-		modes: ['rgba', 'hsla', 'hexa'],
-		showSwatches: false,
 	}),
 
 	computed: {

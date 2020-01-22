@@ -1,33 +1,10 @@
 <template>
 	<div>
-		<v-card id="toolbar" class="toolbar" max-width="150" height="500" outlined>
-			<v-container>
-				<v-flex xs12>
-					<!-- <v-btn class="play btn" color="#37474F" @click="play" dark small
-						>Play</v-btn
-					>
-					<v-btn class="pause btn" color="#37474F" @click="pause" dark small
-						>Stop</v-btn
-					> -->
-					<v-icon class="undo btn" color="#37474F" @click="undoHistory"
-						>mdi-undo</v-icon
-					>
-					<v-icon class="redo btn" color="#37474F" @click="redoHistory"
-						>mdi-redo</v-icon
-					>
-					<v-btn
-						class="clear btn"
-						color="#c0392b"
-						@click="removeDrawing"
-						dark
-						small
-						>Clear</v-btn
-					>
-					<div id="output"></div>
-					<div id="outputAngle"></div>
-					<div id="selected"></div>
-					<!-- <v-radio-group class="radioGroup" v-model="drawType" row @change="drawInit"> -->
-					<v-radio-group class="radioGroup" v-model="setDrawType" row>
+		<div id="output"></div>
+		<div id="outputAngle"></div>
+		<div id="selected"></div>
+		<!-- <v-radio-group class="radioGroup" v-model="drawType" row @change="drawInit"> -->
+		<!-- <v-radio-group class="radioGroup" v-model="setDrawType" row>
 						<v-radio
 							label="Arrow"
 							color="red"
@@ -45,43 +22,299 @@
 						<v-radio label="Angle" color="red" value="angle"></v-radio>
 						<v-radio label="Free" color="red" value="free"></v-radio>
 						<v-radio label="Text" color="red" value="text"></v-radio>
-					</v-radio-group>
-				</v-flex>
-			</v-container>
+					</v-radio-group> -->
+		<v-card max-width="150" dark>
+			<v-subheader>그리기</v-subheader>
+			<v-divider dark></v-divider>
+			<v-item-group mandatory="" v-model="setDrawType">
+				<v-container class="pt-1 pb-0 ml-1">
+					<v-row>
+						<v-col cols="3" md="3" class="pa-0" @click="setArrow">
+							<v-item v-slot:default="{ active, toggle }" value="arrow">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-arrow-left
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+						<v-col cols="3" md="3" class="pa-0" @click="setLine">
+							<v-item v-slot:default="{ active, toggle }" value="line">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-minus
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+						<v-col cols="3" md="3" class="pa-0">
+							<v-item v-slot:default="{ active, toggle }" value="rect">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-rectangle-outline
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+						<v-col cols="3" md="3" class="pa-0">
+							<v-item v-slot:default="{ active, toggle }" value="circle">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-circle-outline
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="3" md="3" class="pa-0">
+							<v-item v-slot:default="{ active, toggle }" value="free">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-pencil
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+						<v-col cols="3" md="3" class="pa-0">
+							<v-item v-slot:default="{ active, toggle }" value="angle">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-angle-acute
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+						<v-col cols="3" md="3" class="pa-0">
+							<v-item v-slot:default="{ active, toggle }" value="triangle">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-triangle-outline
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+						<v-col cols="3" md="3" class="pa-0">
+							<v-item v-slot:default="{ active, toggle }" value="text">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-format-text
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col cols="3" md="3" class="pa-0" @click="undoHistory">
+							<v-item v-slot:default="{ active, toggle }">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-undo
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+						<v-col cols="3" md="3" class="pa-0" @click="redoHistory">
+							<v-item v-slot:default="{ active, toggle }">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-redo
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+						<v-col cols="3" md="3" class="pa-0" @click="removeDrawing">
+							<v-item v-slot:default="{ active, toggle }">
+								<v-card
+									:color="active ? 'blue-grey lighten-1' : ''"
+									class="d-flex flex-row align-center"
+									@click="toggle"
+									width="30"
+									flat
+								>
+									<v-icon class="ma-auto">
+										mdi-cached
+									</v-icon>
+								</v-card>
+							</v-item>
+						</v-col>
+					</v-row>
+				</v-container>
+			</v-item-group>
+			<div class="pa-1">
+				<!-- <v-card class="strokeDash--wrap mt-2" outlined>
+								<v-container class="d-flex" grid-list-xs>
+									<v-slider v-model="setDash" label="Dash" min="0" max="10">{{
+										strokeDash
+									}}</v-slider>
+									<p class="strokeWidth--value font-weight-light">
+										{{ strokeDash }}
+									</p>
+								</v-container>
+							</v-card>
+							<v-card class="strokeWidth--wrap mt-2" outlined>
+								<v-container class="d-flex" grid-list-xs>
+									<v-slider
+										v-model="setStrokeWidth"
+										label="Stroke Width"
+										min="1"
+										max="10"
+										>{{ strokeWidth }}</v-slider
+									>
+									<p class="strokeWidth--value font-weight-light">
+										{{ strokeWidth }}
+									</p>
+								</v-container>
+							</v-card> -->
+				<v-card class="colorPicker--wrap mt-0" outlined light>
+					<v-container class="colorPicker--container pa-1" grid-list-xs>
+						<!-- <v-sheet dark class="strokeText--wrap pa-2">
+										<p id="strokeText">Stroke Color: {{ color }}</p>
+									</v-sheet>
+									<v-spacer></v-spacer> -->
+						<v-color-picker
+							v-model="setColor"
+							hide-canvas
+							hide-inputs
+							show-swatches
+							swatches-max-height="100px"
+							flat
+						></v-color-picker>
+					</v-container>
+				</v-card>
+				<v-card class="pt-1 pb-1">
+					<v-menu offset-y>
+						<template v-slot:activator="{ on }">
+							<v-btn
+								class="pa-2"
+								color="blue-grey darken-1"
+								dark
+								v-on="on"
+								style="font-size: 0.8rem; width: 68px;"
+							>
+								width
+							</v-btn>
+						</template>
+						<v-list>
+							<v-list-item v-for="(item, index) in items" :key="index">
+								<v-list-item-title>{{ item.title }}</v-list-item-title>
+							</v-list-item>
+						</v-list>
+					</v-menu>
+					<v-menu offset-y>
+						<template v-slot:activator="{ on }">
+							<v-btn
+								class="ml-1 pa-2"
+								color="blue-grey darken-1"
+								dark
+								v-on="on"
+								style="font-size: 0.8rem; width: 68px;"
+							>
+								dash
+							</v-btn>
+						</template>
+						<v-list>
+							<v-list-item v-for="(item, index) in items" :key="index">
+								<v-list-item-title>{{ item.title }}</v-list-item-title>
+							</v-list-item>
+						</v-list>
+					</v-menu>
+				</v-card>
+			</div>
 		</v-card>
-		<v-card class="toolbar mt-1" max-width="700" height="50" outlined>
+		<!-- <v-card class="toolbar mt-1" max-width="700" height="50" outlined>
 			<v-container>
 				<v-flex xs12>
-					<!-- <v-btn
+					<v-btn
 						class="delete btn"
 						color="#e74c3c"
 						@click="removeOne"
 						dark
 						small
 						>remove one</v-btn
-					> -->
-					<!-- <v-btn class="clone btn" color="#37474F" @click="cloneOne" dark small
+					>
+					<v-btn class="clone btn" color="#37474F" @click="cloneOne" dark small
 						>clone</v-btn
-					> -->
-					<!-- <v-btn
+					>
+					<v-btn
 						class="capture--video btn"
 						color="#009432"
 						@click="openCVTest"
 						dark
 						small
 						>capture video</v-btn
-					> -->
-					<!-- <v-btn
+					>
+					<v-btn
 						class="capture--image btn"
 						color="#009432"
 						@click="captureImage"
 						dark
 						small
 						>capture image</v-btn
-					> -->
+					>
 				</v-flex>
 			</v-container>
-		</v-card>
+		</!-->
 	</div>
 </template>
 
@@ -92,14 +325,29 @@ import { mapState } from 'vuex'
 // eslint-disable-next-line no-undef
 // const cv = require('opencv4nodejs')
 import { EventBus } from '../eventBus'
+// import OptionStroke from '../components/OptionStroke'
 
 export default {
 	name: 'Toolbar',
 
+	components: {
+		// Integration,
+		// OptionStroke,
+	},
+
 	props: ['videoId', 'canvasId'],
 
 	data: () => ({
+		color: '#E62B2B',
+		strokeWidth: 3,
+		strokeDash: 0,
 		arrow: false,
+		items: [
+			{ title: 'Click Me' },
+			{ title: 'Click Me' },
+			{ title: 'Click Me' },
+			{ title: 'Click Me 2' },
+		],
 	}),
 
 	computed: {
@@ -109,6 +357,36 @@ export default {
 			},
 			set(v) {
 				this.$store.state.drawType = v
+			},
+		},
+
+		setColor: {
+			get() {
+				return this.color
+			},
+			set(v) {
+				this.color = v
+				this.$store.state.drawOptions.strokeColor = v
+			},
+		},
+
+		setStrokeWidth: {
+			get() {
+				return this.strokeWidth
+			},
+			set(v) {
+				this.strokeWidth = v
+				this.$store.state.drawOptions.strokeWidth = v
+			},
+		},
+
+		setDash: {
+			get() {
+				return this.strokeDash
+			},
+			set(v) {
+				this.strokeDash = v
+				this.$store.state.drawOptions.dash = [v, v]
 			},
 		},
 		...mapState({
@@ -123,6 +401,12 @@ export default {
 			},
 			video4: state => {
 				return state.video4
+			},
+			video5: state => {
+				return state.video5
+			},
+			video6: state => {
+				return state.video6
 			},
 		}),
 	},
@@ -205,12 +489,11 @@ export default {
 
 		removeDrawing() {
 			// layer 의 chlildren 삭제
-			this.video1.stage.layer.destroyChildren()
-			this.video2.stage.layer.destroyChildren()
-			this.video3.stage.layer.destroyChildren()
-			this.video4.stage.layer.destroyChildren()
-			// this.resizeCanvas()
-			// this.$props.resizeCanvas()
+			for (let i = 0; i < 6; i++) {
+				if (this[`video${i + 1}`].stage.layer !== null) {
+					this[`video${i + 1}`].stage.layer.destroyChildren()
+				}
+			}
 			EventBus.$emit('eventBus__resizeCanvas')
 		},
 
@@ -288,11 +571,31 @@ export default {
 		// 		console.log('error', error)
 		// 	}
 		// },
+		setStrokeColorState() {
+			const strokeText = document.getElementById('strokeText')
+
+			strokeText.addEventListener('change', () => {
+				// eslint-disable-next-line no-console
+				console.log('change')
+			})
+		},
+
+		getDrawType() {
+			// eslint-disable-next-line no-console
+			console.log(this.$store.state.drawType)
+		},
 	},
 }
 </script>
 
 <style>
+.v-color-picker__controls {
+	display: none !important;
+}
+
+.v-color-picker__color {
+	width: 25px !important;
+}
 .btn {
 	position: relative;
 }

@@ -5,13 +5,13 @@
 				v-bind:id="this.videoId"
 				class="video"
 				src="../assets/videos/example.mp4"
-				width="500"
+				width=""
+				height=""
 				controls
-				@resize="resizeCanvas"
 			></video>
 			<div v-bind:id="this.canvasId" class="canvas"></div>
 		</v-container>
-		<Draw ref="draw" v-bind:videoId="this.videoId" />
+		<Draw ref="draw" :videoId="this.videoId" />
 		<!-- <Toolbar
 			:resizeCanvas="resizeCanvas"
 			v-bind:videoId="this.videoId"
@@ -24,7 +24,7 @@
 import Konva from 'konva'
 import Draw from './Draw'
 import { mapState } from 'vuex'
-import EventBus from '../eventBus'
+import { EventBus } from '../eventBus'
 
 export default {
 	name: 'Video',
@@ -48,10 +48,23 @@ export default {
 		video2: state => {
 			return state.video2
 		},
+		video3: state => {
+			return state.video3
+		},
+		video4: state => {
+			return state.video4
+		},
+		video5: state => {
+			return state.video5
+		},
+		video6: state => {
+			return state.video6
+		},
 	}),
 
 	methods: {
 		setStage(w, h) {
+			console.log(this[this.videoId].stage)
 			// Set up the canvas and shapes
 			this[this.videoId].stage.canvas = new Konva.Stage({
 				container: this.canvasId,
@@ -66,7 +79,7 @@ export default {
 			this[this.videoId].stage.r1 = new Konva.Rect({
 				width: w,
 				height: h,
-				// fill: 'gold',
+				fill: 'gold',
 				opacity: 0.3,
 				id: 'eventArea',
 			})
@@ -115,20 +128,19 @@ export default {
 			this[this.videoId].stage.layer.add(this[this.videoId].stage.line)
 			this[this.videoId].stage.layer.add(this[this.videoId].stage.rect)
 			this[this.videoId].stage.layer.add(this[this.videoId].stage.circle)
-
-			this[this.videoId].stage.canvas.draw()
 		},
 
 		resizeCanvas() {
 			// eslint-disable-next-line no-console
 			console.log('resizeCanvas mounted')
-			console.log(this.video1)
 			const video = document.getElementById(this.videoId)
 			let canvas = document.getElementById(this.canvasId)
 
 			const t = video.offsetTop
 			const l = video.offsetLeft
+			// eslint-disable-next-line no-unused-vars
 			const w = video.offsetWidth
+			// eslint-disable-next-line no-unused-vars
 			const h = video.offsetHeight
 
 			this.setStage(w, h)
@@ -139,6 +151,8 @@ export default {
 			// this.draw()
 			this.$refs.draw.draw()
 			this.mouseMove()
+
+			this[this.videoId].stage.canvas.draw()
 		},
 
 		mouseMove() {
@@ -159,18 +173,8 @@ export default {
 
 <style>
 .videoContainer {
-	height: 365px;
+	/* height: 365px; */
 	padding: 0 !important;
-}
-
-.video {
-	width: 700px;
-	height: auto;
-	/* position: absolute; */
-}
-
-#video2 {
-	left: 750px;
 }
 
 .canvas {

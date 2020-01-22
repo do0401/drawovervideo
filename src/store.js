@@ -5,6 +5,7 @@ Vue.use(Vuex)
 
 export const store = new Vuex.Store({
 	state: {
+		screen: null,
 		history: [],
 		drawType: null,
 		drawOptions: {
@@ -50,6 +51,30 @@ export const store = new Vuex.Store({
 			selected: null,
 		},
 		video4: {
+			stage: {
+				canvas: null,
+				layer: null,
+				r1: null,
+				line: null,
+				rect: null,
+				circle: null,
+				angle: null,
+			},
+			selected: null,
+		},
+		video5: {
+			stage: {
+				canvas: null,
+				layer: null,
+				r1: null,
+				line: null,
+				rect: null,
+				circle: null,
+				angle: null,
+			},
+			selected: null,
+		},
+		video6: {
 			stage: {
 				canvas: null,
 				layer: null,
