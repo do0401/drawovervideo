@@ -52,7 +52,6 @@ export default {
 
 	methods: {
 		draw() {
-			console.log(this[this.videoId].stage)
 			// start the rubber drawing on mouse down.
 			this[this.videoId].stage.r1.on('mousedown', e => {
 				if (this.$store.state.drawType === 'rect') {

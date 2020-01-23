@@ -6,12 +6,12 @@
 			<v-divider dark></v-divider>
 
 			<v-item-group mandatory>
-				<v-container>
+				<v-container class="pt-1 pb-0" height="200px">
 					<v-row>
 						<v-col
 							cols="6"
 							md="6"
-							class="oneScreen pa-2"
+							class="oneScreen pa-2 pt-1 pb-1"
 							@click="setScreenOption"
 						>
 							<!-- 화면1 -->
@@ -31,7 +31,7 @@
 						<v-col
 							cols="6"
 							md="6"
-							class="oneByOne pa-2"
+							class="oneByOne pa-2 pt-1 pb-1"
 							@click="setScreenOption"
 						>
 							<v-item v-slot:default="{ active, toggle }">
@@ -64,7 +64,7 @@
 						<v-col
 							cols="6"
 							md="6"
-							class="oneByTwo pa-2"
+							class="oneByTwo pa-2 pt-1 pb-1"
 							@click="setScreenOption"
 						>
 							<v-item v-slot:default="{ active, toggle }">
@@ -111,7 +111,7 @@
 						<v-col
 							cols="6"
 							md="6"
-							class="twoByOne pa-2"
+							class="twoByOne pa-2 pt-1 pb-1"
 							@click="setScreenOption"
 						>
 							<v-item v-slot:default="{ active, toggle }">
@@ -158,7 +158,7 @@
 						<v-col
 							cols="6"
 							md="6"
-							class="twoByTwo pa-2"
+							class="twoByTwo pa-2 pt-1 pb-1"
 							@click="setScreenOption"
 						>
 							<v-item v-slot:default="{ active, toggle }">
@@ -219,7 +219,7 @@
 						<v-col
 							cols="6"
 							md="6"
-							class="threeByThree pa-2"
+							class="threeByThree pa-2 pt-1"
 							@click="setScreenOption"
 						>
 							<v-item v-slot:default="{ active, toggle }">

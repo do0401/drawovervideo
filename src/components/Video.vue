@@ -64,7 +64,6 @@ export default {
 
 	methods: {
 		setStage(w, h) {
-			console.log(this[this.videoId].stage)
 			// Set up the canvas and shapes
 			this[this.videoId].stage.canvas = new Konva.Stage({
 				container: this.canvasId,

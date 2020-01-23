@@ -26,7 +26,7 @@
 		<v-card max-width="150" dark>
 			<v-subheader>그리기</v-subheader>
 			<v-divider dark></v-divider>
-			<v-item-group mandatory="" v-model="setDrawType">
+			<v-item-group mandatory v-model="setDrawType">
 				<v-container class="pt-1 pb-0 ml-1">
 					<v-row>
 						<v-col cols="3" md="3" class="pa-0" @click="setArrow">

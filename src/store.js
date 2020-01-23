@@ -5,14 +5,14 @@ Vue.use(Vuex)
 
 export const store = new Vuex.Store({
 	state: {
-		screen: null,
+		screen: 'oneScreen',
 		history: [],
-		drawType: null,
+		drawType: 'arrow',
 		drawOptions: {
 			strokeColor: '#E62B2B',
 			strokeWidth: 3,
 			dash: [0, 0],
-			arrow: false,
+			arrow: true,
 		},
 		video1: {
 			stage: {

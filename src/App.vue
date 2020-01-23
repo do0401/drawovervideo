@@ -1,59 +1,25 @@
 <template>
 	<v-app>
 		<!-- <Integration /> -->
-		<div class="d-flex">
-			<Video
-				videoId="video1"
-				canvasId="canvas1"
-				v-show="screenOption.video1.show"
-				ref="video1"
-			/>
-			<Video
-				videoId="video2"
-				canvasId="canvas2"
-				class="pl-12"
-				v-show="screenOption.video2.show"
-				ref="video2"
-			/>
-			<Video
-				videoId="video3"
-				canvasId="canvas3"
-				class="pl-12"
-				v-show="screenOption.video3.show"
-				ref="video3"
-			/>
-			<Video
-				videoId="video4"
-				canvasId="canvas4"
-				class="pl-12"
-				v-show="screenOption.video4.show"
-				ref="video4"
-			/>
-			<Video
-				videoId="video5"
-				canvasId="canvas5"
-				class="pl-12"
-				v-show="screenOption.video5.show"
-				ref="video5"
-			/>
-			<Video
-				videoId="video6"
-				canvasId="canvas6"
-				class="pl-12"
-				v-show="screenOption.video6.show"
-				ref="video6"
-			/>
-		</div>
-		<OptionScreen @setScreenOption="setScreen()" />
-		<OptionDrawing />
+		<v-container class="d-flex flex-row ma-0" width="1600">
+			<div class="pt-10 mt-10">
+				<OptionScreen @setScreenOption="setScreen()" style="width: 180px" />
+				<OptionZoom style="width: 180px" />
+				<OptionDrawing style="width: 180px" />
+			</div>
+			<div>
+				<VideoLayout :pScreenOption="screenOption" ref="videoLayout" />
+			</div>
+		</v-container>
 		<!-- <OptionStroke /> -->
 	</v-app>
 </template>
 
 <script>
 // import Integration from './components/Integration'
-import Video from './components/Video'
+import VideoLayout from './components/VideoLayout'
 import OptionScreen from './components/OptionScreen'
+import OptionZoom from './components/OptionZoom'
 import OptionDrawing from './components/OptionDrawing'
 // import OptionStroke from './components/OptionStroke'
 // eslint-disable-next-line no-unused-vars
@@ -64,8 +30,9 @@ export default {
 
 	components: {
 		// Integration,
-		Video,
+		VideoLayout,
 		OptionScreen,
+		OptionZoom,
 		OptionDrawing,
 		// OptionStroke,
 	},
@@ -104,11 +71,11 @@ export default {
 			},
 		},
 		numOfId: null,
-		display: {
-			video1: true,
-			video2: false,
-		},
 	}),
+
+	mounted() {
+		this.setScreen()
+	},
 
 	methods: {
 		async setScreen() {
@@ -123,11 +90,11 @@ export default {
 					break
 				case 'oneByOne':
 					this.screenOption.video1.show = true
-					this.screenOption.video1.width = '800'
-					this.screenOption.video1.height = '600'
+					this.screenOption.video1.width = '640'
+					this.screenOption.video1.height = '720'
 					this.screenOption.video2.show = true
-					this.screenOption.video2.width = '800'
-					this.screenOption.video2.height = '600'
+					this.screenOption.video2.width = '640'
+					this.screenOption.video2.height = '720'
 					break
 				case 'oneByTwo':
 					this.screenOption.video1.show = true
@@ -210,7 +177,9 @@ export default {
 		setCanvas(numOfVideo) {
 			// 활성화된 video 컴포넌트의 resizeCanvas 실행
 			for (let i = 0; i < numOfVideo; i++) {
-				this.$refs[`video${i + 1}`].resizeCanvas()
+				// this.$refs[`video${i + 1}`].resizeCanvas()
+				const layoutRef = this.$refs.videoLayout
+				layoutRef.$refs[`video${i + 1}`].resizeCanvas()
 			}
 		},
 
