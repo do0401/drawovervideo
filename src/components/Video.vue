@@ -1,13 +1,17 @@
 <template>
 	<div>
-		<v-container id="videoContainer" class="videoContainer" fluid>
+		<v-container
+			v-bind:id="this.vContainerId"
+			class="videoContainer"
+			fluid
+			style=""
+		>
 			<video
 				v-bind:id="this.videoId"
 				class="video"
 				src="../assets/videos/example.mp4"
 				width=""
 				height=""
-				controls
 			></video>
 			<div v-bind:id="this.canvasId" class="canvas"></div>
 		</v-container>
@@ -33,7 +37,7 @@ export default {
 		Draw,
 	},
 
-	props: ['videoId', 'canvasId'],
+	props: ['vContainerId', 'videoId', 'canvasId'],
 
 	created() {
 		EventBus.$on('eventBus__resizeCanvas', () => {
@@ -173,7 +177,14 @@ export default {
 <style>
 .videoContainer {
 	/* height: 365px; */
+	position: relative;
+	overflow: hidden;
+	background-color: lightslategray;
 	padding: 0 !important;
+}
+
+.video {
+	position: absolute;
 }
 
 .canvas {

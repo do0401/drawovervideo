@@ -156,6 +156,7 @@ export default {
 					break
 			}
 			const numOfVideo = await this.setScreenSize()
+			this.setContainer()
 			this.setCanvas(numOfVideo)
 		},
 
@@ -163,15 +164,27 @@ export default {
 			let numOfVideo = 0
 			for (let i = 0; i < 6; i++) {
 				const video = document.getElementById(`video${i + 1}`)
-				video.attributes.width.value = this.screenOption[`video${i + 1}`].width
-				video.attributes.height.value = this.screenOption[
-					`video${i + 1}`
-				].height
 				if (this.screenOption[`video${i + 1}`].show === true) {
+					video.attributes.width.value = this.screenOption[
+						`video${i + 1}`
+					].width
+					video.attributes.height.value = this.screenOption[
+						`video${i + 1}`
+					].height
+					video.parentElement.style = `width: ${video.attributes.width.value}px; height: ${video.attributes.height.value}px;`
 					numOfVideo += 1
 				}
 			}
 			return numOfVideo
+		},
+
+		setContainer() {
+			// this.screenOption.video1.parentElement.width = this.screenOption.video1.width
+			// this.screenOption.video2.parentElement.width = this.screenOption.video2.width
+			// this.screenOption.video3.parentElement.width = this.screenOption.video3.width
+			// this.screenOption.video4.parentElement.width = this.screenOption.video4.width
+			// this.screenOption.video5.parentElement.width = this.screenOption.video5.width
+			// this.screenOption.video6.parentElement.width = this.screenOption.video6.width
 		},
 
 		setCanvas(numOfVideo) {

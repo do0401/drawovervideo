@@ -25,12 +25,14 @@
 		</v-item-group> -->
 		<!-- <Video v-for="item in screenOption" v-bind:key="item">{{ item }}</Video> -->
 		<Video
+			vContainerId="vContainer1"
 			videoId="video1"
 			canvasId="canvas1"
 			v-show="pScreenOption.video1.show"
 			ref="video1"
 		/>
 		<Video
+			vContainerId="vContainer2"
 			videoId="video2"
 			canvasId="canvas2"
 			class="pl-12"
@@ -38,6 +40,7 @@
 			ref="video2"
 		/>
 		<Video
+			vContainerId="vContainer3"
 			videoId="video3"
 			canvasId="canvas3"
 			class="pl-12"
@@ -45,6 +48,7 @@
 			ref="video3"
 		/>
 		<Video
+			vContainerId="vContainer4"
 			videoId="video4"
 			canvasId="canvas4"
 			class="pl-12"
@@ -52,6 +56,7 @@
 			ref="video4"
 		/>
 		<Video
+			vContainerId="vContainer5"
 			videoId="video5"
 			canvasId="canvas5"
 			class="pl-12"
@@ -59,6 +64,7 @@
 			ref="video5"
 		/>
 		<Video
+			vContainerId="vContainer6"
 			videoId="video6"
 			canvasId="canvas6"
 			class="pl-12"
@@ -86,8 +92,7 @@ export default {
 
 <style>
 .videoContainer {
-	max-width: 1300px;
-	width: 1300px;
-	height: 750px;
+	/* max-width: 1300px; */
+	/* height: 750px; */
 }
 </style>
