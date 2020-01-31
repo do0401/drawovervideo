@@ -169,6 +169,7 @@ export default {
 						break
 					default:
 						this.state = 'reset'
+						this.setReset()
 						break
 				}
 			}
@@ -237,9 +238,9 @@ export default {
 				video.addEventListener('mouseup', function() {
 					if (self.state === 'move') self.isDown = false
 					self.selectedVideo = ''
-					if (this.state === 'reset') {
-						self.selectedVideo.style.left = 0
-						self.selectedVideo.style.top = 0
+					if (self.state === 'reset') {
+						// self.selectedVideo.style.left = 0
+						// self.selectedVideo.style.top = 0
 					}
 				})
 			})
@@ -313,7 +314,18 @@ export default {
 			}
 		},
 
-		setMoving() {},
+		setReset() {
+			const videoArray = document.querySelectorAll('.video')
+			// eslint-disable-next-line no-unused-vars
+			const self = this
+			console.log('setReset')
+			videoArray.forEach(function(video) {
+				console.log(video.attributes.style)
+				if (!video.attributes.style || video.attributes.style !== '') {
+					video.removeAttribute('style')
+				}
+			})
+		},
 	},
 }
 </script>
